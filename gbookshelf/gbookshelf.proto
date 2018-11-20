@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package gbookshelf;
+
+message Book {
+    string title = 1;
+    int32 page = 2;
+    bool done = 3;
+}
