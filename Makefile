@@ -1,7 +1,8 @@
 .PHONY: generate install
 
 generate:
-	protoc --go_out=. gbookshelf/gbookshelf.proto
+	protoc gbookshelf/gbookshelf.proto --go_out=plugins=grpc:.
 
 install:
+	go build -o server ./cmd/server
 	go install ./cmd/gbookshelf

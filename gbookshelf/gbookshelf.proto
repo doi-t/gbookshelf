@@ -7,3 +7,18 @@ message Book {
     int32 page = 2;
     bool done = 3;
 }
+
+message Books {
+    repeated Book books = 1;
+}
+
+message Title {
+    string title = 1;
+}
+
+message Void {}
+
+service BookShelf {
+    rpc List(Void) returns(Books) {}
+    rpc Add(Title) returns(Book) {}
+}

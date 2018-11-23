@@ -4,8 +4,10 @@
 package gbookshelf
 
 import (
+	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
 	math "math"
 )
 
@@ -75,19 +77,242 @@ func (m *Book) GetDone() bool {
 	return false
 }
 
+type Books struct {
+	Books                []*Book  `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Books) Reset()         { *m = Books{} }
+func (m *Books) String() string { return proto.CompactTextString(m) }
+func (*Books) ProtoMessage()    {}
+func (*Books) Descriptor() ([]byte, []int) {
+	return fileDescriptor_db96468ffe9e5871, []int{1}
+}
+
+func (m *Books) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Books.Unmarshal(m, b)
+}
+func (m *Books) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Books.Marshal(b, m, deterministic)
+}
+func (m *Books) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Books.Merge(m, src)
+}
+func (m *Books) XXX_Size() int {
+	return xxx_messageInfo_Books.Size(m)
+}
+func (m *Books) XXX_DiscardUnknown() {
+	xxx_messageInfo_Books.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Books proto.InternalMessageInfo
+
+func (m *Books) GetBooks() []*Book {
+	if m != nil {
+		return m.Books
+	}
+	return nil
+}
+
+type Title struct {
+	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Title) Reset()         { *m = Title{} }
+func (m *Title) String() string { return proto.CompactTextString(m) }
+func (*Title) ProtoMessage()    {}
+func (*Title) Descriptor() ([]byte, []int) {
+	return fileDescriptor_db96468ffe9e5871, []int{2}
+}
+
+func (m *Title) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Title.Unmarshal(m, b)
+}
+func (m *Title) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Title.Marshal(b, m, deterministic)
+}
+func (m *Title) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Title.Merge(m, src)
+}
+func (m *Title) XXX_Size() int {
+	return xxx_messageInfo_Title.Size(m)
+}
+func (m *Title) XXX_DiscardUnknown() {
+	xxx_messageInfo_Title.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Title proto.InternalMessageInfo
+
+func (m *Title) GetTitle() string {
+	if m != nil {
+		return m.Title
+	}
+	return ""
+}
+
+type Void struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Void) Reset()         { *m = Void{} }
+func (m *Void) String() string { return proto.CompactTextString(m) }
+func (*Void) ProtoMessage()    {}
+func (*Void) Descriptor() ([]byte, []int) {
+	return fileDescriptor_db96468ffe9e5871, []int{3}
+}
+
+func (m *Void) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Void.Unmarshal(m, b)
+}
+func (m *Void) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Void.Marshal(b, m, deterministic)
+}
+func (m *Void) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Void.Merge(m, src)
+}
+func (m *Void) XXX_Size() int {
+	return xxx_messageInfo_Void.Size(m)
+}
+func (m *Void) XXX_DiscardUnknown() {
+	xxx_messageInfo_Void.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Void proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*Book)(nil), "gbookshelf.Book")
+	proto.RegisterType((*Books)(nil), "gbookshelf.Books")
+	proto.RegisterType((*Title)(nil), "gbookshelf.Title")
+	proto.RegisterType((*Void)(nil), "gbookshelf.Void")
 }
 
 func init() { proto.RegisterFile("gbookshelf/gbookshelf.proto", fileDescriptor_db96468ffe9e5871) }
 
 var fileDescriptor_db96468ffe9e5871 = []byte{
-	// 111 bytes of a gzipped FileDescriptorProto
+	// 205 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4e, 0x4f, 0xca, 0xcf,
 	0xcf, 0x2e, 0xce, 0x48, 0xcd, 0x49, 0xd3, 0x47, 0x30, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85,
 	0xb8, 0x10, 0x22, 0x4a, 0x2e, 0x5c, 0x2c, 0x4e, 0xf9, 0xf9, 0xd9, 0x42, 0x22, 0x5c, 0xac, 0x25,
 	0x99, 0x25, 0x39, 0xa9, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x10, 0x8e, 0x90, 0x10, 0x17,
 	0x4b, 0x41, 0x62, 0x7a, 0xaa, 0x04, 0x93, 0x02, 0xa3, 0x06, 0x6b, 0x10, 0x98, 0x0d, 0x12, 0x4b,
-	0xc9, 0xcf, 0x4b, 0x95, 0x60, 0x56, 0x60, 0xd4, 0xe0, 0x08, 0x02, 0xb3, 0x93, 0xd8, 0xc0, 0x06,
-	0x1b, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xae, 0x70, 0x6a, 0xf5, 0x77, 0x00, 0x00, 0x00,
+	0xc9, 0xcf, 0x4b, 0x95, 0x60, 0x56, 0x60, 0xd4, 0xe0, 0x08, 0x02, 0xb3, 0x95, 0xf4, 0xb9, 0x58,
+	0x41, 0xa6, 0x14, 0x0b, 0xa9, 0x71, 0xb1, 0x82, 0xcd, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x36,
+	0x12, 0xd0, 0x43, 0xb2, 0x1c, 0xa4, 0x22, 0x08, 0x22, 0xad, 0x24, 0xcb, 0xc5, 0x1a, 0x02, 0xb6,
+	0x01, 0xab, 0xbd, 0x4a, 0x6c, 0x5c, 0x2c, 0x61, 0xf9, 0x99, 0x29, 0x46, 0x19, 0x5c, 0x9c, 0x20,
+	0x5d, 0xc1, 0x20, 0xfd, 0x42, 0xba, 0x5c, 0x2c, 0x3e, 0x99, 0xc5, 0x25, 0x42, 0x28, 0x86, 0x82,
+	0x94, 0x49, 0x09, 0xa2, 0x5b, 0x53, 0xac, 0xc4, 0x20, 0xa4, 0xc3, 0xc5, 0xec, 0x98, 0x92, 0x22,
+	0x84, 0x22, 0x07, 0xb6, 0x53, 0x0a, 0xc3, 0x55, 0x4a, 0x0c, 0x49, 0x6c, 0xe0, 0xa0, 0x31, 0x06,
+	0x04, 0x00, 0x00, 0xff, 0xff, 0xa6, 0xce, 0xd0, 0x10, 0x39, 0x01, 0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// BookShelfClient is the client API for BookShelf service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type BookShelfClient interface {
+	List(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Books, error)
+	Add(ctx context.Context, in *Title, opts ...grpc.CallOption) (*Book, error)
+}
+
+type bookShelfClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewBookShelfClient(cc *grpc.ClientConn) BookShelfClient {
+	return &bookShelfClient{cc}
+}
+
+func (c *bookShelfClient) List(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Books, error) {
+	out := new(Books)
+	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookShelfClient) Add(ctx context.Context, in *Title, opts ...grpc.CallOption) (*Book, error) {
+	out := new(Book)
+	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Add", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BookShelfServer is the server API for BookShelf service.
+type BookShelfServer interface {
+	List(context.Context, *Void) (*Books, error)
+	Add(context.Context, *Title) (*Book, error)
+}
+
+func RegisterBookShelfServer(s *grpc.Server, srv BookShelfServer) {
+	s.RegisterService(&_BookShelf_serviceDesc, srv)
+}
+
+func _BookShelf_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookShelfServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gbookshelf.BookShelf/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookShelfServer).List(ctx, req.(*Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookShelf_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Title)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookShelfServer).Add(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gbookshelf.BookShelf/Add",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookShelfServer).Add(ctx, req.(*Title))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _BookShelf_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "gbookshelf.BookShelf",
+	HandlerType: (*BookShelfServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "List",
+			Handler:    _BookShelf_List_Handler,
+		},
+		{
+			MethodName: "Add",
+			Handler:    _BookShelf_Add_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "gbookshelf/gbookshelf.proto",
 }

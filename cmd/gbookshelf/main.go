@@ -1,16 +1,14 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
+	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/doi-t/gbookshelf/gbookshelf"
-	"github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
 )
 
 func main() {
@@ -20,12 +18,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	var err error
+	conn, err := grpc.Dial(":8888", grpc.WithInsecure())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not connect to backend: %v\n", err)
+		os.Exit(1)
+	}
+	client := gbookshelf.NewBookShelfClient(conn)
+
 	switch cmd := flag.Arg(0); cmd {
 	case "list":
-		err = list()
+		err = list(context.Background(), client)
 	case "add":
-		err = add(strings.Join(flag.Args()[1:], " "))
+		err = add(context.Background(), client, strings.Join(flag.Args()[1:], " "))
 	default:
 		err = fmt.Errorf("unknown subcommand %s", cmd)
 	}
@@ -36,78 +40,28 @@ func main() {
 	}
 }
 
-type length int64
-
-const (
-	sizeOfLength = 8
-	dbPath       = "mydb.pb"
-)
-
-var endianness = binary.LittleEndian
-
-func add(title string) error {
-	book := &gbookshelf.Book{
-		Title: title,
-		Page:  100,
-		Done:  false,
-	}
-	b, err := proto.Marshal(book)
+func add(ctx context.Context, client gbookshelf.BookShelfClient, title string) error {
+	_, err := client.Add(ctx, &gbookshelf.Title{Title: title})
 	if err != nil {
-		return fmt.Errorf("could not encode book: %v", err)
+		return fmt.Errorf("could not add task in the backend: %v", err)
 	}
 
-	f, err := os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		return fmt.Errorf("cloud not open %s: %v", dbPath, err)
-	}
-
-	if err := binary.Write(f, endianness, length(len(b))); err != nil {
-		return fmt.Errorf("could not encode length of message: %v", err)
-	}
-
-	_, err = f.Write(b)
-	if err != nil {
-		return fmt.Errorf("could not write book to file: %v", err)
-	}
-
-	if err := f.Close(); err != nil {
-		return fmt.Errorf("cloud not close file %s: %v", dbPath, err)
-	}
-
+	fmt.Println("task added successfully")
 	return nil
 }
 
-func list() error {
-	b, err := ioutil.ReadFile(dbPath)
+func list(ctx context.Context, client gbookshelf.BookShelfClient) error {
+	l, err := client.List(ctx, &gbookshelf.Void{})
 	if err != nil {
-		return fmt.Errorf("cloud not read %s: %v", dbPath, err)
+		return fmt.Errorf("cloud not fetch books: %v", err)
 	}
-
-	for {
-		if len(b) == 0 {
-			return nil
-		} else if len(b) < sizeOfLength {
-			return fmt.Errorf("remaining odd %d bytes, what to do?", len(b))
-		}
-
-		var l length
-		if err := binary.Read(bytes.NewReader(b[:sizeOfLength]), endianness, &l); err != nil {
-			return fmt.Errorf("cloud not decode message length: %v", err)
-		}
-
-		b = b[sizeOfLength:]
-
-		var book gbookshelf.Book
-		if err := proto.Unmarshal(b[:l], &book); err != nil {
-			return fmt.Errorf("cloud not read book: %v", err)
-		}
-		b = b[l:]
-
-		if book.Done {
+	for _, b := range l.Books {
+		if b.Done {
 			fmt.Printf("👍")
 		} else {
 			fmt.Printf("😱")
 		}
-		fmt.Printf(" %s (P%d)\n", book.Title, book.Page)
+		fmt.Printf(" %s (P%d)\n", b.Title, b.Page)
 	}
+	return nil
 }
