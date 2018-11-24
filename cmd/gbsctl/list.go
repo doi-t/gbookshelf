@@ -59,7 +59,7 @@ func list(ctx context.Context, filterDone bool) error {
 		} else {
 			fmt.Printf("😱")
 		}
-		fmt.Printf(" %s (P%d)\n", b.Title, b.Page)
+		fmt.Printf(" %s (p%d)\n", b.Title, b.Page)
 	}
 	return nil
 }
