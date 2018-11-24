@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/doi-t/gbookshelf/gbookshelf"
+	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	grpc "google.golang.org/grpc"
 )
 

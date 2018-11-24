@@ -10,7 +10,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/doi-t/gbookshelf/gbookshelf"
+	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 )
