@@ -5,4 +5,4 @@ generate:
 
 install:
 	go install ./cmd/gbookshelf-server
-	go install 
+	go install ./cmd/gbsctl

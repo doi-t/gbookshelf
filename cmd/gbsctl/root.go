@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gbscli
+package main
 
 import (
 	"fmt"
@@ -27,8 +27,8 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gbscli",
-	Short: "gbscli is a tool to manage your bookshelf",
+	Use:   "gbsctl",
+	Short: "gbsctl is a tool to manage your bookshelf",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -14,8 +14,6 @@
 
 package main
 
-import "github.com/doi-t/gbookshelf/cmd/gbscli"
-
 func main() {
-	gbscli.Execute()
+	Execute()
 }
