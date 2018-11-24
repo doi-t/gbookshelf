@@ -62,11 +62,12 @@ func init() {
 }
 
 func update(ctx context.Context, title string, page int32, status bool) error {
-	bs, err := client.Update(ctx, &gbookshelf.Book{Title: title, Page: page, Done: status})
+	new := &gbookshelf.Book{Title: title, Page: page, Done: status}
+	old, err := client.Update(ctx, &gbookshelf.Book{Title: title, Page: page, Done: status})
 	if err != nil {
 		return fmt.Errorf("could not send a book status to the backend: %v", err)
 	}
 
-	fmt.Printf("book updated successfully: %v\n", bs)
+	fmt.Printf("book updated successfully: %v-> %v\n", old, new)
 	return nil
 }

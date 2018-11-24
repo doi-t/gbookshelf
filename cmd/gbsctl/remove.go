@@ -37,10 +37,10 @@ func init() {
 }
 
 func remove(ctx context.Context, title string) error {
-	_, err := client.Remove(ctx, &gbookshelf.Book{Title: title, Page: -1})
+	rb, err := client.Remove(ctx, &gbookshelf.Book{Title: title, Page: -1})
 	if err != nil {
 		return fmt.Errorf("could not remove a book: %v", err)
 	}
-	fmt.Println("Remove book successfully")
+	fmt.Printf("book removed successfully (Removed book: %v)\n", rb)
 	return nil
 }

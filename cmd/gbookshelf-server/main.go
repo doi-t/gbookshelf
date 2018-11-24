@@ -64,17 +64,11 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 		}
 		b = b[l:]
 		books.Books = append(books.Books, &book)
-		fmt.Printf("Loaded book: %v\n", book)
 	}
 }
 
 func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.Book, error) {
-	bs := &gbookshelf.Book{
-		Title: book.Title,
-		Page:  book.Page,
-		Done:  false,
-	}
-	b, err := proto.Marshal(bs)
+	b, err := proto.Marshal(book)
 	if err != nil {
 		return nil, fmt.Errorf("could not encode book: %v", err)
 	}
@@ -97,13 +91,13 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 		return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
 	}
 
-	return bs, nil
+	return book, nil
 }
 
-func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Void, error) {
+func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Book, error) {
 	l, err := bss.List(ctx, &gbookshelf.Void{})
 	if err != nil {
-		return &gbookshelf.Void{}, err
+		return nil, err
 	}
 	var newList gbookshelf.Books
 	for _, book := range l.Books {
@@ -120,35 +114,43 @@ func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gb
 	}
 
 	for _, book := range newList.Books {
-		b, err := proto.Marshal(book)
-		if err != nil {
-			return nil, fmt.Errorf("could not encode book: %v", err)
-		}
-
-		var f *os.File
-		f, err = os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			return nil, fmt.Errorf("cloud not open %s: %v", dbPath, err)
-		}
-
-		if err := binary.Write(f, endianness, length(len(b))); err != nil {
-			return nil, fmt.Errorf("could not encode length of message: %v", err)
-		}
-
-		_, err = f.Write(b)
-		if err != nil {
-			return nil, fmt.Errorf("could not write book to file: %v", err)
-		}
-
-		if err := f.Close(); err != nil {
-			return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
-		}
+		bss.Add(ctx, book)
 	}
 
-	return &gbookshelf.Void{}, nil
+	return rb, nil
 }
 
-func (bss bookShelfServer) Update(ctx context.Context, bs *gbookshelf.Book) (*gbookshelf.Book, error) {
-	fmt.Printf("Update called: %v\n", bs)
-	return bs, nil
+func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
+	l, err := bss.List(ctx, &gbookshelf.Void{})
+	if err != nil {
+		return nil, err
+	}
+	updated := false
+	var newList gbookshelf.Books
+	for _, book := range l.Books {
+		if book.Title == b.Title {
+			book = &gbookshelf.Book{
+				Title: b.Title,
+				Page:  b.Page,
+				Done:  b.Done,
+			}
+			log.Printf("Update %v-> %v\n", b, book)
+			updated = true
+		}
+		newList.Books = append(newList.Books, book)
+	}
+	if updated != true {
+		return nil, fmt.Errorf("could not find a book you specified. Check the title again: %v", b)
+	}
+
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		bss.Add(ctx, book)
+	}
+
+	return b, nil
 }
