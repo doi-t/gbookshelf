@@ -15,36 +15,58 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"strings"
 
+	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/spf13/cobra"
 )
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Updates status of a book in your bookshelf",
+	Long: `Updates status of a book in your bookshelf. 
+	
+Currently this command tries to find a book of given title in bookshelf and update status.
+Note that 'status' becomes 'incomplete' by default.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		page, err := cmd.Flags().GetInt32("page")
+		if err != nil {
+			return err
+		}
+		status, err := cmd.Flags().GetString("status")
+		if err != nil {
+			return err
+		}
+		var s bool
+		switch status {
+		case "incomplete":
+			s = false
+		case "done":
+			s = true
+		default:
+			return fmt.Errorf("'%s' is invalid status. 'status' must be either 'incomplete' or 'done'.", status)
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("update called")
+		return update(context.Background(), strings.Join(args, " "), page, s)
 	},
 }
 
 func init() {
+	updateCmd.Flags().Int32P("page", "p", -1, "Update the number of pages of the book that you specified.")
+	updateCmd.Flags().StringP("status", "s", "incomplete", "Give 'done' if you finally finish to read the book!")
+
 	rootCmd.AddCommand(updateCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func update(ctx context.Context, title string, page int32, status bool) error {
+	bs, err := client.Update(ctx, &gbookshelf.BookStatus{Title: title, Page: page, Done: status})
+	if err != nil {
+		return fmt.Errorf("could not send a book status to the backend: %v", err)
+	}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// updateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// updateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	fmt.Printf("book updated successfully: %v\n", bs)
+	return nil
 }
