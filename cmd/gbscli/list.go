@@ -15,36 +15,51 @@
 package gbscli
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/spf13/cobra"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+	Short: "Lists all of books piled on your bookshelf",
+	Long: `Lists all of books piled on your bookshelf including the following information:
+- A book title
+- How many pages a book has
+- Done flag (It indicates whether you finish to read the corresponding book or not)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		filsterDone, err := cmd.Flags().GetBool("pile_only")
+		if err != nil {
+			return err
+		}
+		return list(context.Background(), filsterDone)
 	},
 }
 
 func init() {
+	listCmd.Flags().BoolP("pile_only", "p", false, "Show only books that are still being stacked on your book pile.")
+
 	rootCmd.AddCommand(listCmd)
+}
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func list(ctx context.Context, filterDone bool) error {
+	l, err := client.List(ctx, &gbookshelf.Void{})
+	if err != nil {
+		return fmt.Errorf("cloud not fetch books: %v", err)
+	}
+	for _, b := range l.Books {
+		if b.Done {
+			if filterDone {
+				continue
+			}
+			fmt.Printf("👍")
+		} else {
+			fmt.Printf("😱")
+		}
+		fmt.Printf(" %s (P%d)\n", b.Title, b.Page)
+	}
+	return nil
 }
