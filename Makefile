@@ -8,16 +8,4 @@ install:
 	go install ./cmd/gbsctl
 
 test: install
-	gbookshelf-server &
-	rm -f mydb.pb
-	gbsctl add hoge
-	gbsctl add fuga
-	gbsctl add foo
-	gbsctl list
-	ls -lh mydb.pb
-	xxd mydb.pb
-	gbsctl remove fuga
-	ls -lh mydb.pb
-	xxd mydb.pb
-	gbsctl list
-	pkill gbookshelf-server
+	./scripts/integration_test.sh
