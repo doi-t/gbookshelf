@@ -20,5 +20,5 @@ message Void {}
 
 service BookShelf {
     rpc List(Void) returns(Books) {}
-    rpc Add(Title) returns(Book) {}
+    rpc Pile(Title) returns(Book) {}
 }
