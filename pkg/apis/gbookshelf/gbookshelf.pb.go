@@ -22,103 +22,10 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type BookStatus struct {
-	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	Done                 bool     `protobuf:"varint,3,opt,name=done,proto3" json:"done,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *BookStatus) Reset()         { *m = BookStatus{} }
-func (m *BookStatus) String() string { return proto.CompactTextString(m) }
-func (*BookStatus) ProtoMessage()    {}
-func (*BookStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{0}
-}
-
-func (m *BookStatus) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_BookStatus.Unmarshal(m, b)
-}
-func (m *BookStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_BookStatus.Marshal(b, m, deterministic)
-}
-func (m *BookStatus) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BookStatus.Merge(m, src)
-}
-func (m *BookStatus) XXX_Size() int {
-	return xxx_messageInfo_BookStatus.Size(m)
-}
-func (m *BookStatus) XXX_DiscardUnknown() {
-	xxx_messageInfo_BookStatus.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_BookStatus proto.InternalMessageInfo
-
-func (m *BookStatus) GetTitle() string {
-	if m != nil {
-		return m.Title
-	}
-	return ""
-}
-
-func (m *BookStatus) GetPage() int32 {
-	if m != nil {
-		return m.Page
-	}
-	return 0
-}
-
-func (m *BookStatus) GetDone() bool {
-	if m != nil {
-		return m.Done
-	}
-	return false
-}
-
-type Books struct {
-	Books                []*BookStatus `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
-}
-
-func (m *Books) Reset()         { *m = Books{} }
-func (m *Books) String() string { return proto.CompactTextString(m) }
-func (*Books) ProtoMessage()    {}
-func (*Books) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{1}
-}
-
-func (m *Books) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Books.Unmarshal(m, b)
-}
-func (m *Books) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Books.Marshal(b, m, deterministic)
-}
-func (m *Books) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Books.Merge(m, src)
-}
-func (m *Books) XXX_Size() int {
-	return xxx_messageInfo_Books.Size(m)
-}
-func (m *Books) XXX_DiscardUnknown() {
-	xxx_messageInfo_Books.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Books proto.InternalMessageInfo
-
-func (m *Books) GetBooks() []*BookStatus {
-	if m != nil {
-		return m.Books
-	}
-	return nil
-}
-
 type Book struct {
 	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	Done                 bool     `protobuf:"varint,3,opt,name=done,proto3" json:"done,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -128,7 +35,7 @@ func (m *Book) Reset()         { *m = Book{} }
 func (m *Book) String() string { return proto.CompactTextString(m) }
 func (*Book) ProtoMessage()    {}
 func (*Book) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{2}
+	return fileDescriptor_7ba0627d911171ab, []int{0}
 }
 
 func (m *Book) XXX_Unmarshal(b []byte) error {
@@ -163,6 +70,52 @@ func (m *Book) GetPage() int32 {
 	return 0
 }
 
+func (m *Book) GetDone() bool {
+	if m != nil {
+		return m.Done
+	}
+	return false
+}
+
+type Books struct {
+	Books                []*Book  `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Books) Reset()         { *m = Books{} }
+func (m *Books) String() string { return proto.CompactTextString(m) }
+func (*Books) ProtoMessage()    {}
+func (*Books) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ba0627d911171ab, []int{1}
+}
+
+func (m *Books) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Books.Unmarshal(m, b)
+}
+func (m *Books) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Books.Marshal(b, m, deterministic)
+}
+func (m *Books) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Books.Merge(m, src)
+}
+func (m *Books) XXX_Size() int {
+	return xxx_messageInfo_Books.Size(m)
+}
+func (m *Books) XXX_DiscardUnknown() {
+	xxx_messageInfo_Books.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Books proto.InternalMessageInfo
+
+func (m *Books) GetBooks() []*Book {
+	if m != nil {
+		return m.Books
+	}
+	return nil
+}
+
 type Void struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -173,7 +126,7 @@ func (m *Void) Reset()         { *m = Void{} }
 func (m *Void) String() string { return proto.CompactTextString(m) }
 func (*Void) ProtoMessage()    {}
 func (*Void) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{3}
+	return fileDescriptor_7ba0627d911171ab, []int{2}
 }
 
 func (m *Void) XXX_Unmarshal(b []byte) error {
@@ -195,31 +148,29 @@ func (m *Void) XXX_DiscardUnknown() {
 var xxx_messageInfo_Void proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*BookStatus)(nil), "gbookshelf.BookStatus")
-	proto.RegisterType((*Books)(nil), "gbookshelf.Books")
 	proto.RegisterType((*Book)(nil), "gbookshelf.Book")
+	proto.RegisterType((*Books)(nil), "gbookshelf.Books")
 	proto.RegisterType((*Void)(nil), "gbookshelf.Void")
 }
 
 func init() { proto.RegisterFile("gbookshelf.proto", fileDescriptor_7ba0627d911171ab) }
 
 var fileDescriptor_7ba0627d911171ab = []byte{
-	// 236 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0x3f, 0x4f, 0x04, 0x21,
-	0x14, 0xc4, 0x17, 0x17, 0x88, 0xf7, 0x6c, 0xce, 0x17, 0x63, 0xc8, 0x55, 0x84, 0x8a, 0x42, 0x37,
-	0x7a, 0xc6, 0xc6, 0x4e, 0x4b, 0x63, 0x85, 0xd1, 0x7e, 0x2f, 0xe0, 0xb9, 0xb9, 0xd3, 0xb7, 0x11,
-	0xf4, 0xbb, 0xfa, 0x6d, 0x0c, 0x5c, 0xb1, 0xeb, 0x9f, 0x4d, 0xec, 0x86, 0x61, 0x98, 0xdf, 0x24,
-	0xc0, 0x7c, 0xbd, 0x22, 0xda, 0xc4, 0xe7, 0xb0, 0x7d, 0x6a, 0xfa, 0x37, 0x4a, 0x84, 0x30, 0x38,
-	0xe6, 0x16, 0xe0, 0x86, 0x68, 0x73, 0x9f, 0xda, 0xf4, 0x1e, 0xf1, 0x08, 0x44, 0xea, 0xd2, 0x36,
-	0x28, 0xa6, 0x99, 0x9d, 0xb9, 0xdd, 0x01, 0x11, 0x78, 0xdf, 0xae, 0x83, 0xda, 0xd3, 0xcc, 0x0a,
-	0x57, 0x74, 0xf6, 0x3c, 0xbd, 0x06, 0x55, 0x6b, 0x66, 0xf7, 0x5d, 0xd1, 0xe6, 0x12, 0x44, 0xee,
-	0x8a, 0x78, 0x02, 0xa2, 0x10, 0x14, 0xd3, 0xb5, 0x3d, 0x58, 0x1e, 0x37, 0xa3, 0x09, 0x03, 0xcd,
-	0xed, 0x42, 0xe6, 0x0c, 0x78, 0x36, 0xff, 0x0f, 0x37, 0x12, 0xf8, 0x23, 0x75, 0x7e, 0xf9, 0xc9,
-	0x60, 0x56, 0xfa, 0x72, 0x33, 0x9e, 0x02, 0xbf, 0xeb, 0x62, 0xc2, 0xf9, 0x18, 0x97, 0x73, 0x8b,
-	0xc3, 0x9f, 0x03, 0xa2, 0xa9, 0xf0, 0x1c, 0xea, 0x6b, 0xef, 0xbf, 0xa7, 0xf3, 0xdd, 0x62, 0x62,
-	0xae, 0xa9, 0xb0, 0x01, 0xe9, 0xc2, 0x0b, 0x7d, 0x84, 0x3f, 0x5e, 0xfd, 0xa2, 0x9a, 0x0a, 0xaf,
-	0x40, 0x3e, 0xf4, 0xbe, 0x4d, 0x01, 0x27, 0x3a, 0xa7, 0x59, 0x2b, 0x59, 0xfe, 0xea, 0xe2, 0x2b,
-	0x00, 0x00, 0xff, 0xff, 0xeb, 0x43, 0xb2, 0x0c, 0xbf, 0x01, 0x00, 0x00,
+	// 215 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xbf, 0x4a, 0xc5, 0x30,
+	0x14, 0xc6, 0x6f, 0x6c, 0x52, 0xbc, 0xc7, 0xa5, 0x1e, 0x1c, 0x42, 0xa7, 0x90, 0x41, 0x02, 0x62,
+	0x85, 0xfa, 0x04, 0x8a, 0xa3, 0x53, 0x44, 0xf7, 0x96, 0xc4, 0x5a, 0x5a, 0x3d, 0xc5, 0x04, 0x5f,
+	0xd1, 0xd7, 0x92, 0xa4, 0x83, 0x7f, 0x3a, 0x78, 0xb7, 0x2f, 0x5f, 0x7e, 0xf9, 0x7d, 0x10, 0xa8,
+	0x86, 0x9e, 0x68, 0x0a, 0x2f, 0x7e, 0x7e, 0x6e, 0x96, 0x77, 0x8a, 0x84, 0xf0, 0xdd, 0xe8, 0x3b,
+	0xe0, 0xb7, 0x44, 0x13, 0x9e, 0x81, 0x88, 0x63, 0x9c, 0xbd, 0x64, 0x8a, 0x99, 0xbd, 0x5d, 0x0f,
+	0x88, 0xc0, 0x97, 0x6e, 0xf0, 0xf2, 0x48, 0x31, 0x23, 0x6c, 0xce, 0xa9, 0x73, 0xf4, 0xe6, 0x65,
+	0xa1, 0x98, 0x39, 0xb6, 0x39, 0xeb, 0x2b, 0x10, 0xc9, 0x12, 0xf0, 0x1c, 0x44, 0x76, 0x4b, 0xa6,
+	0x0a, 0x73, 0xd2, 0x56, 0xcd, 0x8f, 0xf1, 0x44, 0xd8, 0xf5, 0x5a, 0x97, 0xc0, 0x9f, 0x68, 0x74,
+	0xed, 0x27, 0x83, 0x7d, 0xea, 0x1f, 0x12, 0x81, 0x97, 0xc0, 0xef, 0xc7, 0x10, 0xf1, 0xd7, 0xb3,
+	0xc4, 0xd5, 0xa7, 0x7f, 0x45, 0x41, 0xef, 0xf0, 0x02, 0x8a, 0x1b, 0xe7, 0x70, 0x33, 0x52, 0x6f,
+	0x1a, 0xbd, 0xc3, 0x06, 0x4a, 0xeb, 0x5f, 0xe9, 0xc3, 0xff, 0xc7, 0xa7, 0xbd, 0x95, 0x7f, 0x5c,
+	0x5c, 0x17, 0xfd, 0x61, 0xfe, 0xbe, 0xcc, 0x7f, 0x7b, 0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x3a,
+	0x1e, 0x14, 0xe3, 0x6f, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -235,9 +186,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type BookShelfClient interface {
 	List(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Books, error)
-	Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*BookStatus, error)
+	Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error)
 	Remove(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Void, error)
-	Update(ctx context.Context, in *BookStatus, opts ...grpc.CallOption) (*BookStatus, error)
+	Update(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error)
 }
 
 type bookShelfClient struct {
@@ -257,8 +208,8 @@ func (c *bookShelfClient) List(ctx context.Context, in *Void, opts ...grpc.CallO
 	return out, nil
 }
 
-func (c *bookShelfClient) Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*BookStatus, error) {
-	out := new(BookStatus)
+func (c *bookShelfClient) Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error) {
+	out := new(Book)
 	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Add", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -275,8 +226,8 @@ func (c *bookShelfClient) Remove(ctx context.Context, in *Book, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *bookShelfClient) Update(ctx context.Context, in *BookStatus, opts ...grpc.CallOption) (*BookStatus, error) {
-	out := new(BookStatus)
+func (c *bookShelfClient) Update(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error) {
+	out := new(Book)
 	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -287,9 +238,9 @@ func (c *bookShelfClient) Update(ctx context.Context, in *BookStatus, opts ...gr
 // BookShelfServer is the server API for BookShelf service.
 type BookShelfServer interface {
 	List(context.Context, *Void) (*Books, error)
-	Add(context.Context, *Book) (*BookStatus, error)
+	Add(context.Context, *Book) (*Book, error)
 	Remove(context.Context, *Book) (*Void, error)
-	Update(context.Context, *BookStatus) (*BookStatus, error)
+	Update(context.Context, *Book) (*Book, error)
 }
 
 func RegisterBookShelfServer(s *grpc.Server, srv BookShelfServer) {
@@ -351,7 +302,7 @@ func _BookShelf_Remove_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _BookShelf_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BookStatus)
+	in := new(Book)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -363,7 +314,7 @@ func _BookShelf_Update_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/gbookshelf.BookShelf/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BookShelfServer).Update(ctx, req.(*BookStatus))
+		return srv.(BookShelfServer).Update(ctx, req.(*Book))
 	}
 	return interceptor(ctx, in, info, handler)
 }

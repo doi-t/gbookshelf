@@ -2,26 +2,21 @@ syntax = "proto3";
 
 package gbookshelf;
 
-message BookStatus {
+message Book {
     string title = 1;
     int32 page = 2;
     bool done = 3;
 }
 
 message Books {
-    repeated BookStatus books = 1;
-}
-
-message Book {
-    string title = 1;
-    int32 page = 2;
+    repeated Book books = 1;
 }
 
 message Void {}
 
 service BookShelf {
     rpc List(Void) returns(Books) {}
-    rpc Add(Book) returns(BookStatus) {}
+    rpc Add(Book) returns(Book) {}
     rpc Remove(Book) returns(Void) {}
-    rpc Update(BookStatus) returns(BookStatus) {}
+    rpc Update(Book) returns(Book) {}
 }

@@ -58,7 +58,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 
 		b = b[sizeOfLength:]
 
-		var book gbookshelf.BookStatus
+		var book gbookshelf.Book
 		if err := proto.Unmarshal(b[:l], &book); err != nil {
 			return nil, fmt.Errorf("cloud not read book: %v", err)
 		}
@@ -68,8 +68,8 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	}
 }
 
-func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.BookStatus, error) {
-	bs := &gbookshelf.BookStatus{
+func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.Book, error) {
+	bs := &gbookshelf.Book{
 		Title: book.Title,
 		Page:  book.Page,
 		Done:  false,
@@ -148,7 +148,7 @@ func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gb
 	return &gbookshelf.Void{}, nil
 }
 
-func (bss bookShelfServer) Update(ctx context.Context, bs *gbookshelf.BookStatus) (*gbookshelf.BookStatus, error) {
+func (bss bookShelfServer) Update(ctx context.Context, bs *gbookshelf.Book) (*gbookshelf.Book, error) {
 	fmt.Printf("Update called: %v\n", bs)
 	return bs, nil
 }
