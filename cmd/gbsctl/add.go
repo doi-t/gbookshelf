@@ -23,29 +23,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// pileCmd represents the pile command
-var pileCmd = &cobra.Command{
-	Use:   "pile",
-	Short: "pile a new book on your bookshelf",
-	Long:  `pile a new book on your bookshelf. Give title and its number of pages.`,
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add",
+	Short: "add a new book on your bookshelf",
+	Long:  `add a new book on your bookshelf. Give title and its number of pages.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return pile(context.Background(), strings.Join(args, " "))
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("pile called")
+		return add(context.Background(), strings.Join(args, " "))
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(pileCmd)
+	rootCmd.AddCommand(addCmd)
 }
 
-func pile(ctx context.Context, title string) error {
-	_, err := client.Pile(ctx, &gbookshelf.Title{Title: title})
+func add(ctx context.Context, title string) error {
+	_, err := client.Add(ctx, &gbookshelf.Title{Title: title})
 	if err != nil {
 		return fmt.Errorf("could not send a book to the backend: %v", err)
 	}
 
-	fmt.Println("book piled successfully")
+	fmt.Println("book added successfully")
 	return nil
 }

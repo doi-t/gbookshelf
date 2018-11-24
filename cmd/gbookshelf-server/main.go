@@ -68,7 +68,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	}
 }
 
-func (bookShelfServer) Pile(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Book, error) {
+func (bookShelfServer) Add(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Book, error) {
 	book := &gbookshelf.Book{
 		Title: title.Title,
 		Page:  100,

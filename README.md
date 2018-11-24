@@ -22,7 +22,7 @@ $ gbookshelf-server # in a terminal
 ## Access bookshelf
 ```shell
 $ gbsctl # in another terminal
-$ gbsctl pile Designing Data-Intensive Applications
+$ gbsctl add Designing Data-Intensive Applications
 $ gbsctl list
 ```
 
