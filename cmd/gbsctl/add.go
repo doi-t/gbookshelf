@@ -29,16 +29,22 @@ var addCmd = &cobra.Command{
 	Short: "add a new book on your bookshelf",
 	Long:  `add a new book on your bookshelf. Give title and its number of pages.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return add(context.Background(), strings.Join(args, " "))
+		page, err := cmd.Flags().GetInt32("page")
+		if err != nil {
+			return err
+		}
+		return add(context.Background(), strings.Join(args, " "), page)
 	},
 }
 
 func init() {
+	addCmd.Flags().Int32P("page", "p", -1, "The number of pages of the book that you add to bookshelf.")
+
 	rootCmd.AddCommand(addCmd)
 }
 
-func add(ctx context.Context, title string) error {
-	_, err := client.Add(ctx, &gbookshelf.Title{Title: title})
+func add(ctx context.Context, title string, page int32) error {
+	_, err := client.Add(ctx, &gbookshelf.Book{Title: title, Page: page})
 	if err != nil {
 		return fmt.Errorf("could not send a book to the backend: %v", err)
 	}

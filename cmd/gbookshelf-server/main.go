@@ -58,7 +58,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 
 		b = b[sizeOfLength:]
 
-		var book gbookshelf.Book
+		var book gbookshelf.BookState
 		if err := proto.Unmarshal(b[:l], &book); err != nil {
 			return nil, fmt.Errorf("cloud not read book: %v", err)
 		}
@@ -68,13 +68,13 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	}
 }
 
-func (bookShelfServer) Add(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Book, error) {
-	book := &gbookshelf.Book{
-		Title: title.Title,
-		Page:  100,
+func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.BookState, error) {
+	bs := &gbookshelf.BookState{
+		Title: book.Title,
+		Page:  book.Page,
 		Done:  false,
 	}
-	b, err := proto.Marshal(book)
+	b, err := proto.Marshal(bs)
 	if err != nil {
 		return nil, fmt.Errorf("could not encode book: %v", err)
 	}
@@ -97,17 +97,17 @@ func (bookShelfServer) Add(ctx context.Context, title *gbookshelf.Title) (*gbook
 		return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
 	}
 
-	return book, nil
+	return bs, nil
 }
 
-func (bss bookShelfServer) Remove(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Void, error) {
+func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Void, error) {
 	l, err := bss.List(ctx, &gbookshelf.Void{})
 	if err != nil {
 		return &gbookshelf.Void{}, err
 	}
 	var newList gbookshelf.Books
 	for _, book := range l.Books {
-		if book.Title == title.Title {
+		if book.Title == rb.Title {
 			log.Printf("Remove %v from bookshelf\n", book)
 			continue
 		}
