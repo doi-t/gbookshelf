@@ -44,7 +44,7 @@ func init() {
 }
 
 func add(ctx context.Context, title string, page int32) error {
-	_, err := client.Add(ctx, &gbookshelf.Book{Title: title, Page: page, Done: false})
+	_, err := client.Add(ctx, &gbookshelf.Book{Title: title, Page: page, Done: false, Current: 0})
 	if err != nil {
 		return fmt.Errorf("could not send a book to the backend: %v", err)
 	}

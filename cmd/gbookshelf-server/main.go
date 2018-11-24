@@ -129,10 +129,25 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	var newList gbookshelf.Books
 	for _, book := range l.Books {
 		if book.Title == b.Title {
+			var p int32
+			if b.Page == -1 {
+				p = book.Page
+			} else {
+				p = b.Page
+			}
+
+			var c int32
+			if b.Current == -1 {
+				c = book.Current
+			} else {
+				c = b.Current
+			}
+
 			book = &gbookshelf.Book{
-				Title: b.Title,
-				Page:  b.Page,
-				Done:  b.Done,
+				Title:   book.Title,
+				Page:    p,
+				Done:    b.Done,
+				Current: c,
 			}
 			log.Printf("Update %v-> %v\n", b, book)
 			updated = true

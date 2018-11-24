@@ -36,6 +36,10 @@ Note that 'status' becomes 'incomplete' by default.`,
 		if err != nil {
 			return err
 		}
+		current, err := cmd.Flags().GetInt32("current")
+		if err != nil {
+			return err
+		}
 		status, err := cmd.Flags().GetString("status")
 		if err != nil {
 			return err
@@ -50,20 +54,21 @@ Note that 'status' becomes 'incomplete' by default.`,
 			return fmt.Errorf("'%s' is invalid status. 'status' must be either 'incomplete' or 'done'.", status)
 		}
 
-		return update(context.Background(), strings.Join(args, " "), page, s)
+		return update(context.Background(), strings.Join(args, " "), page, s, current)
 	},
 }
 
 func init() {
 	updateCmd.Flags().Int32P("page", "p", -1, "Update the number of pages of the book that you specified.")
 	updateCmd.Flags().StringP("status", "s", "incomplete", "Give 'done' if you finally finish to read the book!")
+	updateCmd.Flags().Int32P("current", "c", -1, "Update the current page position of the book you specified..")
 
 	rootCmd.AddCommand(updateCmd)
 }
 
-func update(ctx context.Context, title string, page int32, status bool) error {
+func update(ctx context.Context, title string, page int32, status bool, current int32) error {
 	new := &gbookshelf.Book{Title: title, Page: page, Done: status}
-	old, err := client.Update(ctx, &gbookshelf.Book{Title: title, Page: page, Done: status})
+	old, err := client.Update(ctx, &gbookshelf.Book{Title: title, Page: page, Done: status, Current: current})
 	if err != nil {
 		return fmt.Errorf("could not send a book status to the backend: %v", err)
 	}

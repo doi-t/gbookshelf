@@ -6,6 +6,7 @@ message Book {
     string title = 1;
     int32 page = 2;
     bool done = 3;
+    int32 current = 4;
 }
 
 message Books {
