@@ -2,13 +2,13 @@
 set -x
 gbookshelf-server &
 rm -f mydb.pb
-gbsctl add hoge -p 100
-gbsctl add fuga --page 500
-gbsctl add foo
+gbsctl add hoge fuga -p 100
+gbsctl add foo bar
+gbsctl add Designing Data-Intensive Applications --page 624
 gbsctl list
 ls -lh mydb.pb
 xxd mydb.pb
-gbsctl remove fuga
+gbsctl remove foo bar
 ls -lh mydb.pb
 xxd mydb.pb
 gbsctl list
