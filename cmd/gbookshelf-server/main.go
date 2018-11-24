@@ -98,3 +98,8 @@ func (bookShelfServer) Pile(ctx context.Context, title *gbookshelf.Title) (*gboo
 
 	return book, nil
 }
+
+func (bookShelfServer) Remove(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Void, error) {
+	fmt.Println("Remove called")
+	return nil, nil
+}
