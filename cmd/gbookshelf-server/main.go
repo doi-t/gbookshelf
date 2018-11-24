@@ -147,3 +147,7 @@ func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gb
 
 	return &gbookshelf.Void{}, nil
 }
+
+func (bss bookShelfServer) Update(ctx context.Context, bs *gbookshelf.BookState) (*gbookshelf.BookState, error) {
+	return bs, nil
+}

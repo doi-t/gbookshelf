@@ -23,4 +23,5 @@ service BookShelf {
     rpc List(Void) returns(Books) {}
     rpc Add(Book) returns(BookState) {}
     rpc Remove(Book) returns(Void) {}
+    rpc Update(BookState) returns(BookState) {}
 }
