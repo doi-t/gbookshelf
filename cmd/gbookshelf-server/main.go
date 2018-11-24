@@ -64,6 +64,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 		}
 		b = b[l:]
 		books.Books = append(books.Books, &book)
+		fmt.Printf("Loaded book: %v\n", book)
 	}
 }
 
@@ -99,7 +100,50 @@ func (bookShelfServer) Pile(ctx context.Context, title *gbookshelf.Title) (*gboo
 	return book, nil
 }
 
-func (bookShelfServer) Remove(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Void, error) {
-	fmt.Println("Remove called")
-	return nil, nil
+func (bss bookShelfServer) Remove(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Void, error) {
+	l, err := bss.List(ctx, &gbookshelf.Void{})
+	if err != nil {
+		return &gbookshelf.Void{}, err
+	}
+	var newList gbookshelf.Books
+	for _, book := range l.Books {
+		if book.Title == title.Title {
+			log.Printf("Remove %v from bookshelf\n", book)
+			continue
+		}
+		newList.Books = append(newList.Books, book)
+	}
+
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		b, err := proto.Marshal(book)
+		if err != nil {
+			return nil, fmt.Errorf("could not encode book: %v", err)
+		}
+
+		var f *os.File
+		f, err = os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("cloud not open %s: %v", dbPath, err)
+		}
+
+		if err := binary.Write(f, endianness, length(len(b))); err != nil {
+			return nil, fmt.Errorf("could not encode length of message: %v", err)
+		}
+
+		_, err = f.Write(b)
+		if err != nil {
+			return nil, fmt.Errorf("could not write book to file: %v", err)
+		}
+
+		if err := f.Close(); err != nil {
+			return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
+		}
+	}
+
+	return &gbookshelf.Void{}, nil
 }

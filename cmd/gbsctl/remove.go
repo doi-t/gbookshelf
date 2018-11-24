@@ -15,8 +15,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"strings"
 
+	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/spf13/cobra"
 )
 
@@ -24,11 +27,20 @@ import (
 var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "Removes a book from your bookshelf",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return remove(context.Background(), strings.Join(args, " "))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
+}
+
+func remove(ctx context.Context, title string) error {
+	_, err := client.Remove(ctx, &gbookshelf.Title{Title: title})
+	if err != nil {
+		return fmt.Errorf("could not remove a book: %v", err)
+	}
+	fmt.Println("Remove book successfully")
+	return nil
 }
