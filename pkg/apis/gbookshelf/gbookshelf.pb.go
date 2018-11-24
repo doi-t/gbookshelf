@@ -26,6 +26,7 @@ type Book struct {
 	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	Done                 bool     `protobuf:"varint,3,opt,name=done,proto3" json:"done,omitempty"`
+	Current              int32    `protobuf:"varint,4,opt,name=current,proto3" json:"current,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -77,6 +78,13 @@ func (m *Book) GetDone() bool {
 	return false
 }
 
+func (m *Book) GetCurrent() int32 {
+	if m != nil {
+		return m.Current
+	}
+	return 0
+}
+
 type Books struct {
 	Books                []*Book  `protobuf:"bytes,1,rep,name=books,proto3" json:"books,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -116,45 +124,6 @@ func (m *Books) GetBooks() []*Book {
 	return nil
 }
 
-type Title struct {
-	Title                string   `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Title) Reset()         { *m = Title{} }
-func (m *Title) String() string { return proto.CompactTextString(m) }
-func (*Title) ProtoMessage()    {}
-func (*Title) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{2}
-}
-
-func (m *Title) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Title.Unmarshal(m, b)
-}
-func (m *Title) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Title.Marshal(b, m, deterministic)
-}
-func (m *Title) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Title.Merge(m, src)
-}
-func (m *Title) XXX_Size() int {
-	return xxx_messageInfo_Title.Size(m)
-}
-func (m *Title) XXX_DiscardUnknown() {
-	xxx_messageInfo_Title.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Title proto.InternalMessageInfo
-
-func (m *Title) GetTitle() string {
-	if m != nil {
-		return m.Title
-	}
-	return ""
-}
-
 type Void struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -165,7 +134,7 @@ func (m *Void) Reset()         { *m = Void{} }
 func (m *Void) String() string { return proto.CompactTextString(m) }
 func (*Void) ProtoMessage()    {}
 func (*Void) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ba0627d911171ab, []int{3}
+	return fileDescriptor_7ba0627d911171ab, []int{2}
 }
 
 func (m *Void) XXX_Unmarshal(b []byte) error {
@@ -189,27 +158,28 @@ var xxx_messageInfo_Void proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*Book)(nil), "gbookshelf.Book")
 	proto.RegisterType((*Books)(nil), "gbookshelf.Books")
-	proto.RegisterType((*Title)(nil), "gbookshelf.Title")
 	proto.RegisterType((*Void)(nil), "gbookshelf.Void")
 }
 
 func init() { proto.RegisterFile("gbookshelf.proto", fileDescriptor_7ba0627d911171ab) }
 
 var fileDescriptor_7ba0627d911171ab = []byte{
-	// 201 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x48, 0x4f, 0xca, 0xcf,
-	0xcf, 0x2e, 0xce, 0x48, 0xcd, 0x49, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x42, 0x88,
-	0x28, 0xb9, 0x70, 0xb1, 0x38, 0xe5, 0xe7, 0x67, 0x0b, 0x89, 0x70, 0xb1, 0x96, 0x64, 0x96, 0xe4,
-	0xa4, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x41, 0x38, 0x42, 0x42, 0x5c, 0x2c, 0x05, 0x89,
-	0xe9, 0xa9, 0x12, 0x4c, 0x0a, 0x8c, 0x1a, 0xac, 0x41, 0x60, 0x36, 0x48, 0x2c, 0x25, 0x3f, 0x2f,
-	0x55, 0x82, 0x59, 0x81, 0x51, 0x83, 0x23, 0x08, 0xcc, 0x56, 0xd2, 0xe7, 0x62, 0x05, 0x99, 0x52,
-	0x2c, 0xa4, 0xc6, 0xc5, 0x0a, 0x36, 0x5b, 0x82, 0x51, 0x81, 0x59, 0x83, 0xdb, 0x48, 0x40, 0x0f,
-	0xc9, 0x72, 0x90, 0x8a, 0x20, 0x88, 0xb4, 0x92, 0x2c, 0x17, 0x6b, 0x08, 0xd8, 0x06, 0xac, 0xf6,
-	0x2a, 0xb1, 0x71, 0xb1, 0x84, 0xe5, 0x67, 0xa6, 0x18, 0x65, 0x72, 0x71, 0x82, 0x74, 0x05, 0x83,
-	0xf4, 0x0b, 0xe9, 0x72, 0xb1, 0xf8, 0x64, 0x16, 0x97, 0x08, 0xa1, 0x18, 0x0a, 0x52, 0x26, 0x25,
-	0x88, 0x6e, 0x4d, 0xb1, 0x12, 0x03, 0x48, 0x79, 0x40, 0x66, 0x4e, 0xaa, 0x10, 0x8a, 0x24, 0xd8,
-	0x52, 0x29, 0x0c, 0x67, 0x29, 0x31, 0x24, 0xb1, 0x81, 0xc3, 0xc6, 0x18, 0x10, 0x00, 0x00, 0xff,
-	0xff, 0xca, 0xf8, 0xe3, 0xc9, 0x2f, 0x01, 0x00, 0x00,
+	// 226 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xc1, 0x4e, 0xc4, 0x20,
+	0x10, 0x86, 0x17, 0x0b, 0xd5, 0x1d, 0x2f, 0xeb, 0xc4, 0x03, 0xd9, 0x13, 0xe1, 0x60, 0x48, 0x8c,
+	0x35, 0x59, 0x9f, 0x40, 0xcf, 0x9e, 0x30, 0x7a, 0x34, 0xd9, 0x15, 0x5c, 0x9b, 0xd6, 0x4e, 0x53,
+	0xd0, 0x57, 0xf4, 0xb5, 0x0c, 0x34, 0x46, 0xdd, 0x5e, 0x7a, 0x9b, 0xf9, 0xf8, 0xf8, 0x7f, 0x02,
+	0xac, 0xf6, 0x3b, 0xa2, 0x26, 0xbc, 0xf9, 0xf6, 0xb5, 0xea, 0x07, 0x8a, 0x84, 0xf0, 0x4b, 0xf4,
+	0x33, 0xf0, 0x3b, 0xa2, 0x06, 0xcf, 0x41, 0xc4, 0x3a, 0xb6, 0x5e, 0x32, 0xc5, 0xcc, 0xd2, 0x8e,
+	0x0b, 0x22, 0xf0, 0x7e, 0xbb, 0xf7, 0xf2, 0x48, 0x31, 0x23, 0x6c, 0x9e, 0x13, 0x73, 0xd4, 0x79,
+	0x59, 0x28, 0x66, 0x4e, 0x6c, 0x9e, 0x51, 0xc2, 0xf1, 0xcb, 0xc7, 0x30, 0xf8, 0x2e, 0x4a, 0x9e,
+	0xd5, 0x9f, 0x55, 0x5f, 0x83, 0x48, 0xf9, 0x01, 0x2f, 0x40, 0xe4, 0x56, 0xc9, 0x54, 0x61, 0x4e,
+	0x37, 0xab, 0xea, 0xcf, 0xb3, 0x92, 0x61, 0xc7, 0x63, 0x5d, 0x02, 0x7f, 0xa2, 0xda, 0x6d, 0xbe,
+	0x18, 0x2c, 0x13, 0x7f, 0x48, 0x06, 0x5e, 0x01, 0xbf, 0xaf, 0x43, 0xc4, 0x7f, 0xd7, 0x92, 0xb7,
+	0x3e, 0x3b, 0x0c, 0x0a, 0x7a, 0x81, 0x97, 0x50, 0xdc, 0x3a, 0x87, 0x93, 0x92, 0xf5, 0x84, 0xe8,
+	0x05, 0x56, 0x50, 0x5a, 0xff, 0x4e, 0x9f, 0x7e, 0xbe, 0xff, 0xd8, 0xbb, 0x6d, 0x9c, 0xe9, 0xef,
+	0xca, 0xfc, 0xeb, 0x37, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xd0, 0x53, 0xc9, 0x4b, 0x89, 0x01,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -225,7 +195,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type BookShelfClient interface {
 	List(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Books, error)
-	Pile(ctx context.Context, in *Title, opts ...grpc.CallOption) (*Book, error)
+	Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error)
+	Remove(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error)
+	Update(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error)
 }
 
 type bookShelfClient struct {
@@ -245,9 +217,27 @@ func (c *bookShelfClient) List(ctx context.Context, in *Void, opts ...grpc.CallO
 	return out, nil
 }
 
-func (c *bookShelfClient) Pile(ctx context.Context, in *Title, opts ...grpc.CallOption) (*Book, error) {
+func (c *bookShelfClient) Add(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error) {
 	out := new(Book)
-	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Pile", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Add", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookShelfClient) Remove(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error) {
+	out := new(Book)
+	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Remove", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bookShelfClient) Update(ctx context.Context, in *Book, opts ...grpc.CallOption) (*Book, error) {
+	out := new(Book)
+	err := c.cc.Invoke(ctx, "/gbookshelf.BookShelf/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +247,9 @@ func (c *bookShelfClient) Pile(ctx context.Context, in *Title, opts ...grpc.Call
 // BookShelfServer is the server API for BookShelf service.
 type BookShelfServer interface {
 	List(context.Context, *Void) (*Books, error)
-	Pile(context.Context, *Title) (*Book, error)
+	Add(context.Context, *Book) (*Book, error)
+	Remove(context.Context, *Book) (*Book, error)
+	Update(context.Context, *Book) (*Book, error)
 }
 
 func RegisterBookShelfServer(s *grpc.Server, srv BookShelfServer) {
@@ -282,20 +274,56 @@ func _BookShelf_List_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BookShelf_Pile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Title)
+func _BookShelf_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Book)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BookShelfServer).Pile(ctx, in)
+		return srv.(BookShelfServer).Add(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gbookshelf.BookShelf/Pile",
+		FullMethod: "/gbookshelf.BookShelf/Add",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BookShelfServer).Pile(ctx, req.(*Title))
+		return srv.(BookShelfServer).Add(ctx, req.(*Book))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookShelf_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Book)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookShelfServer).Remove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gbookshelf.BookShelf/Remove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookShelfServer).Remove(ctx, req.(*Book))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BookShelf_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Book)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BookShelfServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gbookshelf.BookShelf/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BookShelfServer).Update(ctx, req.(*Book))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -309,8 +337,16 @@ var _BookShelf_serviceDesc = grpc.ServiceDesc{
 			Handler:    _BookShelf_List_Handler,
 		},
 		{
-			MethodName: "Pile",
-			Handler:    _BookShelf_Pile_Handler,
+			MethodName: "Add",
+			Handler:    _BookShelf_Add_Handler,
+		},
+		{
+			MethodName: "Remove",
+			Handler:    _BookShelf_Remove_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _BookShelf_Update_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

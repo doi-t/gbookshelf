@@ -31,7 +31,7 @@ var listCmd = &cobra.Command{
 - How many pages a book has
 - Done flag (It indicates whether you finish to read the corresponding book or not)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		filsterDone, err := cmd.Flags().GetBool("pile_only")
+		filsterDone, err := cmd.Flags().GetBool("incomplete_only")
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	listCmd.Flags().BoolP("pile_only", "p", false, "Show only books that are still being stacked on your book pile.")
+	listCmd.Flags().BoolP("incomplete_only", "i", false, "Show only books that are still being stacked on your book pile.")
 
 	rootCmd.AddCommand(listCmd)
 }
@@ -59,7 +59,7 @@ func list(ctx context.Context, filterDone bool) error {
 		} else {
 			fmt.Printf("😱")
 		}
-		fmt.Printf(" %s (P%d)\n", b.Title, b.Page)
+		fmt.Printf(" %s (p%d/p%d) Progress: %.2f\n", b.Title, b.Current, b.Page, float32(b.Current)/float32(b.Page))
 	}
 	return nil
 }

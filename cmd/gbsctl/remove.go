@@ -23,29 +23,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// pileCmd represents the pile command
-var pileCmd = &cobra.Command{
-	Use:   "pile",
-	Short: "pile a new book on your bookshelf",
-	Long:  `pile a new book on your bookshelf. Give title and its number of pages.`,
+// removeCmd represents the remove command
+var removeCmd = &cobra.Command{
+	Use:   "remove",
+	Short: "Removes a book from your bookshelf",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return pile(context.Background(), strings.Join(args, " "))
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("pile called")
+		return remove(context.Background(), strings.Join(args, " "))
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(pileCmd)
+	rootCmd.AddCommand(removeCmd)
 }
 
-func pile(ctx context.Context, title string) error {
-	_, err := client.Pile(ctx, &gbookshelf.Title{Title: title})
+func remove(ctx context.Context, title string) error {
+	rb, err := client.Remove(ctx, &gbookshelf.Book{Title: title})
 	if err != nil {
-		return fmt.Errorf("could not send a book to the backend: %v", err)
+		return fmt.Errorf("could not remove a book: %v", err)
 	}
-
-	fmt.Println("book piled successfully")
+	fmt.Printf("book removed successfully (Removed book: %v)\n", rb)
 	return nil
 }

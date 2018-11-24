@@ -6,19 +6,18 @@ message Book {
     string title = 1;
     int32 page = 2;
     bool done = 3;
+    int32 current = 4;
 }
 
 message Books {
     repeated Book books = 1;
 }
 
-message Title {
-    string title = 1;
-}
-
 message Void {}
 
 service BookShelf {
     rpc List(Void) returns(Books) {}
-    rpc Pile(Title) returns(Book) {}
+    rpc Add(Book) returns(Book) {}
+    rpc Remove(Book) returns(Book) {}
+    rpc Update(Book) returns(Book) {}
 }

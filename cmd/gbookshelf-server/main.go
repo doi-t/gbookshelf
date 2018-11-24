@@ -67,12 +67,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	}
 }
 
-func (bookShelfServer) Pile(ctx context.Context, title *gbookshelf.Title) (*gbookshelf.Book, error) {
-	book := &gbookshelf.Book{
-		Title: title.Title,
-		Page:  100,
-		Done:  false,
-	}
+func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.Book, error) {
 	b, err := proto.Marshal(book)
 	if err != nil {
 		return nil, fmt.Errorf("could not encode book: %v", err)
@@ -97,4 +92,90 @@ func (bookShelfServer) Pile(ctx context.Context, title *gbookshelf.Title) (*gboo
 	}
 
 	return book, nil
+}
+
+func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Book, error) {
+	l, err := bss.List(ctx, &gbookshelf.Void{})
+	if err != nil {
+		return nil, err
+	}
+	removed := false
+	var newList gbookshelf.Books
+	for _, book := range l.Books {
+		if book.Title == rb.Title {
+			log.Printf("Remove %v from bookshelf\n", book)
+			removed = true
+			continue
+		}
+		newList.Books = append(newList.Books, book)
+	}
+
+	if removed != true {
+		return nil, fmt.Errorf("could not find a book that you specified. Check title again: %v", rb)
+	}
+
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		bss.Add(ctx, book)
+	}
+
+	return rb, nil
+}
+
+func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
+	l, err := bss.List(ctx, &gbookshelf.Void{})
+	if err != nil {
+		return nil, err
+	}
+	updated := false
+	var newList gbookshelf.Books
+	for _, book := range l.Books {
+		if book.Title == b.Title {
+			var p int32
+			if b.Page == -1 {
+				p = book.Page
+			} else {
+				p = b.Page
+			}
+
+			var c int32
+			if b.Current == -1 {
+				c = book.Current
+			} else {
+				c = b.Current
+			}
+
+			if c > p {
+				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of the the book: %v", c, p, book)
+			}
+
+			book = &gbookshelf.Book{
+				Title:   book.Title,
+				Page:    p,
+				Done:    b.Done,
+				Current: c,
+			}
+			log.Printf("Update %v-> %v\n", b, book)
+			updated = true
+		}
+		newList.Books = append(newList.Books, book)
+	}
+	if updated != true {
+		return nil, fmt.Errorf("could not find a book you specified. Check the title again: %v", b)
+	}
+
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		bss.Add(ctx, book)
+	}
+
+	return b, nil
 }
