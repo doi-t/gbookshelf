@@ -32,7 +32,7 @@ type length int64
 
 const (
 	sizeOfLength = 8
-	dbPath       = "mydb.pb"
+	dbPath       = "mydb.pb" //TODO: where should I define it and keep it configurable for testing?
 )
 
 var endianness = binary.LittleEndian
@@ -73,6 +73,7 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 		return nil, fmt.Errorf("could not encode book: %v", err)
 	}
 
+	// TODO: find the best place to manage protobuf data other than a local file
 	f, err := os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, fmt.Errorf("cloud not open %s: %v", dbPath, err)
@@ -114,6 +115,7 @@ func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gb
 		return nil, fmt.Errorf("could not find a book that you specified. Check title again: %v", rb)
 	}
 
+	// TODO: find a better way to remove a book from db
 	err = os.Remove(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
@@ -136,21 +138,21 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	for _, book := range l.Books {
 		if book.Title == b.Title {
 			var p int32
-			if b.Page == -1 {
+			if b.Page == 0 {
 				p = book.Page
 			} else {
 				p = b.Page
 			}
 
 			var c int32
-			if b.Current == -1 {
+			if b.Current == 0 {
 				c = book.Current
 			} else {
 				c = b.Current
 			}
 
 			if c > p {
-				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of the the book: %v", c, p, book)
+				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of %s", c, p, book.Title)
 			}
 
 			book = &gbookshelf.Book{
@@ -165,9 +167,10 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		newList.Books = append(newList.Books, book)
 	}
 	if updated != true {
-		return nil, fmt.Errorf("could not find a book you specified. Check the title again: %v", b)
+		return nil, fmt.Errorf("could not find a book title: %v", b.Title)
 	}
 
+	// TODO: find a better way to update a book in db
 	err = os.Remove(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
