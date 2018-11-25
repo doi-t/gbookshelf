@@ -1,11 +1,14 @@
 COMMAND:=
 
-.PHONY: generate install, test, add
+.PHONY: generate, ensure, install, test, add
 
 generate:
 	protoc --proto_path=api/protobuf-spec gbookshelf.proto --go_out=plugins=grpc:./pkg/apis/gbookshelf
 
-install:
+ensure:
+	dep ensure
+
+install: ensure generate
 	go install ./cmd/gbookshelf-server
 	go install ./cmd/gbsctl
 
