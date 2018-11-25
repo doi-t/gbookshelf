@@ -8,18 +8,38 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/golang/protobuf/proto"
+	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	grpc "google.golang.org/grpc"
 )
 
 func main() {
-	srv := grpc.NewServer()
+	// Create a gRPC Server with gRPC interceptor.
+	srv := grpc.NewServer(
+		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+	)
+	// Register gbookshelf-server gRPC service implementations.
 	var bookshelf bookShelfServer
 	gbookshelf.RegisterBookShelfServer(srv, bookshelf)
-	l, err := net.Listen("tcp", ":8888") // TODO: make it environment variable
+	// After all your registrations, make sure all of the Prometheus metrics are initialized.
+	grpc_prometheus.Register(srv)
+	// Register Prometheus metrics handler.
+	http.Handle("/metrics", promhttp.Handler())
+	// Start your http server for prometheus.
+	go func() {
+		if err := http.ListenAndServe(":9000", nil); err != nil { // TODO: make port number environment variable
+
+			log.Fatalf("Unable to start a http server for Prometheus: %v", err)
+		}
+	}()
+
+	l, err := net.Listen("tcp", ":8888") // TODO: make port number environment variable
 	if err != nil {
 		log.Fatalf("could not listen to :8888: %v", err)
 	}

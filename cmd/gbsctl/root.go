@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
+	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -43,7 +44,11 @@ func Execute() {
 var client gbookshelf.BookShelfClient
 
 func init() {
-	conn, err := grpc.Dial(":8888", grpc.WithInsecure())
+	conn, err := grpc.Dial(":8888",
+		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
+		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
+		grpc.WithInsecure(), // FIXME
+	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "could not connect to backend: %v\n", err)
 		os.Exit(1)
