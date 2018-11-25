@@ -2,12 +2,32 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 )
 
-// TODO: figure out the best way to organize the order of unit tests that depends on shared data in database
+var books = []gbookshelf.Book{
+	{Title: "Designing Data-Intensive Applications", Page: 624, Done: false, Current: 20},
+	{Title: "default value book"},
+}
+
+func initBookshelf(dbPath string, t *testing.T) {
+	t.Helper()
+	err := os.Remove(dbPath)
+	if err != nil {
+		t.Errorf("%s did not exist but it's fine.", dbPath)
+	}
+	bss := bookShelfServer{}
+	for _, b := range books {
+		_, err := bss.Add(context.Background(), &b)
+		if err != nil {
+			t.Fatalf("failed to initialize bookshelf: %v", err)
+		}
+	}
+}
 
 func TestAdd(t *testing.T) {
 	tt := []struct {
@@ -17,7 +37,7 @@ func TestAdd(t *testing.T) {
 		current int32
 	}{
 		{"add a book", "Designing Data-Intensive Applications", 624, 20},
-		{"add a book with default values", "zero page", 0, 0},
+		{"add a book with default values", "default value book", 0, 0},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -38,7 +58,6 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-// test data in db depends on what above unit tests do. How is it supposed to be?
 func TestList(t *testing.T) {
 	tt := []struct {
 		name    string
@@ -49,6 +68,7 @@ func TestList(t *testing.T) {
 	}{
 		{"list added book", "Designing Data-Intensive Applications", 624, 20, 2},
 	}
+	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}
@@ -63,7 +83,6 @@ func TestList(t *testing.T) {
 	}
 }
 
-// test data in db depends on what above unit tests do. How should it supposed to be?
 func TestUpdate(t *testing.T) {
 	tt := []struct {
 		name    string
@@ -74,11 +93,12 @@ func TestUpdate(t *testing.T) {
 		err     string
 	}{
 		{name: "update added book", title: "Designing Data-Intensive Applications", current: 400},
-		{name: "update zero page book", title: "zero page", page: 111},
+		{name: "update zero page book", title: "default value book", page: 111},
 		{name: "finish to read", title: "Designing Data-Intensive Applications", done: true},
 		{name: "invalid current page position", title: "Designing Data-Intensive Applications", current: 9999, err: "The current page position (9999) can be not larger than the number of page (624) of Designing Data-Intensive Applications"},
 		{name: "unknown titlel", title: "Unknown book", err: "could not find a book title: Unknown book"},
 	}
+	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}
@@ -89,9 +109,13 @@ func TestUpdate(t *testing.T) {
 				Current: tc.current,
 			}
 			u, err := bss.Update(context.Background(), b)
+			fmt.Printf("updating... %s\n", b)
 			if err != nil {
+				if tc.err == "" {
+					t.Fatalf("unexpected error: %v", err)
+				}
 				if tc.err != err.Error() {
-					t.Errorf("expected error message %q; got %q", err, tc.err)
+					t.Errorf("expected error message %q; got %q", tc.err, err)
 				}
 				return
 			}
@@ -105,7 +129,6 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-// test data in db depends on what above unit tests do. How is it supposed to be?
 func TestRemove(t *testing.T) {
 	tt := []struct {
 		name  string
@@ -113,6 +136,7 @@ func TestRemove(t *testing.T) {
 	}{
 		{"list added book", "Designing Data-Intensive Applications"},
 	}
+	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}

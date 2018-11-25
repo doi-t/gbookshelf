@@ -32,7 +32,7 @@ type length int64
 
 const (
 	sizeOfLength = 8
-	dbPath       = "mydb.pb"
+	dbPath       = "mydb.pb" //TODO: where should I define it and keep it configurable for testing?
 )
 
 var endianness = binary.LittleEndian
