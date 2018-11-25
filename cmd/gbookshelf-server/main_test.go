@@ -17,6 +17,7 @@ func TestAdd(t *testing.T) {
 		current int32
 	}{
 		{"add a book", "Designing Data-Intensive Applications", 624, 20},
+		{"add a book with default values", "zero page", 0, 0},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -37,15 +38,16 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-// test data in db depends on what above unit tests do. How should it supposed to be?
+// test data in db depends on what above unit tests do. How is it supposed to be?
 func TestList(t *testing.T) {
 	tt := []struct {
 		name    string
 		title   string
 		page    int32
 		current int32
+		num     int
 	}{
-		{"list added book", "Designing Data-Intensive Applications", 624, 20},
+		{"list added book", "Designing Data-Intensive Applications", 624, 20, 2},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -54,8 +56,8 @@ func TestList(t *testing.T) {
 			if err != nil {
 				t.Fatalf("List should be succeeded; failed: %v", err)
 			}
-			if len(l.Books) != 1 {
-				t.Fatalf("the number of books should be 1; got %v", l)
+			if len(l.Books) != tc.num {
+				t.Fatalf("the number of books should be %d; got %d", tc.num, len(l.Books))
 			}
 		})
 	}
@@ -69,19 +71,29 @@ func TestUpdate(t *testing.T) {
 		page    int32
 		done    bool
 		current int32
+		err     string
 	}{
 		{name: "update added book", title: "Designing Data-Intensive Applications", current: 400},
+		{name: "update zero page book", title: "zero page", page: 111},
+		{name: "finish to read", title: "Designing Data-Intensive Applications", done: true},
+		{name: "invalid current page position", title: "Designing Data-Intensive Applications", current: 9999, err: "The current page position (9999) can be not larger than the number of page (624) of Designing Data-Intensive Applications"},
+		{name: "unknown titlel", title: "Unknown book", err: "could not find a book title: Unknown book"},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}
 			b := &gbookshelf.Book{
 				Title:   tc.title,
+				Page:    tc.page,
+				Done:    tc.done,
 				Current: tc.current,
 			}
 			u, err := bss.Update(context.Background(), b)
 			if err != nil {
-				t.Fatalf("Update should be succeeded; failed: %v", err)
+				if tc.err != err.Error() {
+					t.Errorf("expected error message %q; got %q", err, tc.err)
+				}
+				return
 			}
 			if u.Title != tc.title {
 				t.Fatalf("updated book title should be %s; got %v", tc.title, u)
@@ -93,7 +105,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-// test data in db depends on what above unit tests do. How should it supposed to be?
+// test data in db depends on what above unit tests do. How is it supposed to be?
 func TestRemove(t *testing.T) {
 	tt := []struct {
 		name  string

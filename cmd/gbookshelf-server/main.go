@@ -152,7 +152,7 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 			}
 
 			if c > p {
-				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of the the book: %v", c, p, book)
+				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of %s", c, p, book.Title)
 			}
 
 			book = &gbookshelf.Book{
@@ -167,10 +167,10 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		newList.Books = append(newList.Books, book)
 	}
 	if updated != true {
-		return nil, fmt.Errorf("could not find a book you specified. Check the title again: %v", b)
+		return nil, fmt.Errorf("could not find a book title: %v", b.Title)
 	}
 
-	// TODO: find a better way to update a book from db
+	// TODO: find a better way to update a book in db
 	err = os.Remove(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
