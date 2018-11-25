@@ -73,6 +73,7 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 		return nil, fmt.Errorf("could not encode book: %v", err)
 	}
 
+	// TODO: find the best place to manage protobuf data other than a local file
 	f, err := os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, fmt.Errorf("cloud not open %s: %v", dbPath, err)
@@ -114,6 +115,7 @@ func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gb
 		return nil, fmt.Errorf("could not find a book that you specified. Check title again: %v", rb)
 	}
 
+	// TODO: find a better way to remove a book from db
 	err = os.Remove(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
@@ -136,14 +138,14 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	for _, book := range l.Books {
 		if book.Title == b.Title {
 			var p int32
-			if b.Page == -1 {
+			if b.Page == 0 {
 				p = book.Page
 			} else {
 				p = b.Page
 			}
 
 			var c int32
-			if b.Current == -1 {
+			if b.Current == 0 {
 				c = book.Current
 			} else {
 				c = b.Current
@@ -168,6 +170,7 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		return nil, fmt.Errorf("could not find a book you specified. Check the title again: %v", b)
 	}
 
+	// TODO: find a better way to update a book from db
 	err = os.Remove(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)

@@ -38,7 +38,7 @@ var addCmd = &cobra.Command{
 }
 
 func init() {
-	addCmd.Flags().Int32P("page", "p", -1, "The number of pages of the book that you add to bookshelf.")
+	addCmd.Flags().Int32P("page", "p", 0, "The number of pages of the book that you add to bookshelf.")
 
 	rootCmd.AddCommand(addCmd)
 }

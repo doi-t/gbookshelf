@@ -59,9 +59,9 @@ Note that 'status' becomes 'incomplete' by default.`,
 }
 
 func init() {
-	updateCmd.Flags().Int32P("page", "p", -1, "Update the number of pages of the book that you specified.")
+	updateCmd.Flags().Int32P("page", "p", 0, "Update the number of pages of the book that you specified.")
 	updateCmd.Flags().StringP("status", "s", "incomplete", "Give 'done' if you finally finish to read the book!")
-	updateCmd.Flags().Int32P("current", "c", -1, "Update the current page position of the book you specified..")
+	updateCmd.Flags().Int32P("current", "c", 0, "Update the current page position of the book you specified..")
 
 	rootCmd.AddCommand(updateCmd)
 }
