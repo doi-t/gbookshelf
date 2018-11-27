@@ -14,29 +14,58 @@ import (
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	grpc "google.golang.org/grpc"
 )
 
+type bookShelfServer struct{}
+
+var (
+	// Create a metrics registry.
+	reg = prometheus.NewRegistry()
+
+	// Create some standard server metrics.
+	grpcMetrics = grpc_prometheus.NewServerMetrics()
+
+	// Create a customized counter metric.
+	customizedCounterMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "demo_gbookshelf_method_handle_count",
+		Help: "Total number of RPCs handled on the server.",
+	}, []string{"name"})
+)
+
+func init() {
+	// Register standard server metrics and customized metrics to registry.
+	reg.MustRegister(grpcMetrics, customizedCounterMetric)
+	customizedCounterMetric.WithLabelValues("Test")
+}
+
+// FIXME: Graceful shutdown is missing.
 func main() {
+	// Create a HTTP server for prometheus.
+	httpServer := &http.Server{Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), Addr: fmt.Sprintf("0.0.0.0:%d", 2112)}
+
 	// Create a gRPC Server with gRPC interceptor.
 	srv := grpc.NewServer(
-		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
-		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+		grpc.StreamInterceptor(grpcMetrics.StreamServerInterceptor()),
+		grpc.UnaryInterceptor(grpcMetrics.UnaryServerInterceptor()),
 	)
 	// Register gbookshelf-server gRPC service implementations.
 	var bookshelf bookShelfServer
 	gbookshelf.RegisterBookShelfServer(srv, bookshelf)
-	// After all your registrations, make sure all of the Prometheus metrics are initialized.
-	grpc_prometheus.Register(srv)
+
+	// Initialize all metrics.
+	grpcMetrics.InitializeMetrics(srv)
+
 	// Register Prometheus metrics handler.
 	http.Handle("/metrics", promhttp.Handler())
 	// Start your http server for prometheus.
 	go func() {
-		if err := http.ListenAndServe(":9000", nil); err != nil { // TODO: make port number environment variable
-
+		if err := httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("Unable to start a http server for Prometheus: %v", err)
 		}
+
 	}()
 
 	l, err := net.Listen("tcp", ":8888") // TODO: make port number environment variable
@@ -45,8 +74,6 @@ func main() {
 	}
 	log.Fatal(srv.Serve(l))
 }
-
-type bookShelfServer struct{}
 
 type length int64
 
