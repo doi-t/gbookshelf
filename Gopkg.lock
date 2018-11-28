@@ -204,6 +204,7 @@
   input-imports = [
     "github.com/golang/protobuf/proto",
     "github.com/grpc-ecosystem/go-grpc-prometheus",
+    "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/spf13/cobra",
     "google.golang.org/grpc",

@@ -29,16 +29,25 @@ var (
 	grpcMetrics = grpc_prometheus.NewServerMetrics()
 
 	// Create a customized counter metric.
-	customizedCounterMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "demo_gbookshelf_method_handle_count",
-		Help: "Total number of RPCs handled on the server.",
-	}, []string{"name"})
+	promBookUpdateCounterMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "gbookshelf_book_update_count",
+		Help: "Total number of book update.",
+	}, []string{"book_title"})
+
+	// Create a customized counter metric.
+	promCurrentPageGaugeMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "gbookshelf_current_page_gauge",
+		Help: "The current page position of the book.",
+	}, []string{"book_title"})
 )
 
 func init() {
 	// Register standard server metrics and customized metrics to registry.
-	reg.MustRegister(grpcMetrics, customizedCounterMetric)
-	customizedCounterMetric.WithLabelValues("Test")
+	reg.MustRegister(
+		grpcMetrics,
+		promBookUpdateCounterMetric,
+		promCurrentPageGaugeMetric,
+	)
 }
 
 // FIXME: Graceful shutdown is missing.
@@ -111,6 +120,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 		}
 		b = b[l:]
 		books.Books = append(books.Books, &book)
+
 	}
 }
 
@@ -138,6 +148,9 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 	if err := f.Close(); err != nil {
 		return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
 	}
+
+	promBookUpdateCounterMetric.WithLabelValues(book.Title).Inc()
+	promCurrentPageGaugeMetric.WithLabelValues(book.Title).Set(float64(book.Current))
 
 	return book, nil
 }
@@ -180,6 +193,36 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	if err != nil {
 		return nil, err
 	}
+
+	newList, err := updateBookList(l, b)
+	if err != nil {
+		return nil, err
+	}
+
+	var updatedBook *gbookshelf.Book
+	for _, book := range newList.Books {
+		if book.Title == b.Title {
+			updatedBook = book
+		}
+	}
+
+	// TODO: find a better way to update a book in db
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		bss.Add(ctx, book)
+	}
+
+	promCurrentPageGaugeMetric.WithLabelValues(updatedBook.Title).Set(float64(updatedBook.Current))
+	promBookUpdateCounterMetric.WithLabelValues(updatedBook.Title).Inc()
+
+	return b, nil
+}
+
+func updateBookList(l *gbookshelf.Books, b *gbookshelf.Book) (*gbookshelf.Books, error) {
 	updated := false
 	var newList gbookshelf.Books
 	for _, book := range l.Books {
@@ -217,15 +260,5 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		return nil, fmt.Errorf("could not find a book title: %v", b.Title)
 	}
 
-	// TODO: find a better way to update a book in db
-	err = os.Remove(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
-	}
-
-	for _, book := range newList.Books {
-		bss.Add(ctx, book)
-	}
-
-	return b, nil
+	return &newList, nil
 }
