@@ -14,27 +14,64 @@ import (
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	grpc "google.golang.org/grpc"
 )
 
+type bookShelfServer struct{}
+
+var (
+	// Create a metrics registry.
+	reg = prometheus.NewRegistry()
+
+	// Create some standard server metrics.
+	grpcMetrics = grpc_prometheus.NewServerMetrics()
+
+	// Create a customized counter metric.
+	promBookUpdateCounterMetric = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "gbookshelf_book_update_count",
+		Help: "Total number of book update.",
+	}, []string{"book_title"})
+
+	// Create a customized counter metric.
+	promCurrentPageGaugeMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "gbookshelf_book_current_page",
+		Help: "The current page position of book.",
+	}, []string{"book_title"})
+)
+
+func init() {
+	// Register standard server metrics and customized metrics to registry.
+	reg.MustRegister(
+		grpcMetrics,
+		promBookUpdateCounterMetric,
+		promCurrentPageGaugeMetric,
+	)
+}
+
+// FIXME: Graceful shutdown is missing.
 func main() {
+	// Create a HTTP server for prometheus.
+	httpServer := &http.Server{Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), Addr: fmt.Sprintf("0.0.0.0:%d", 2112)}
+
 	// Create a gRPC Server with gRPC interceptor.
 	srv := grpc.NewServer(
-		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
-		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+		grpc.StreamInterceptor(grpcMetrics.StreamServerInterceptor()),
+		grpc.UnaryInterceptor(grpcMetrics.UnaryServerInterceptor()),
 	)
 	// Register gbookshelf-server gRPC service implementations.
 	var bookshelf bookShelfServer
 	gbookshelf.RegisterBookShelfServer(srv, bookshelf)
-	// After all your registrations, make sure all of the Prometheus metrics are initialized.
-	grpc_prometheus.Register(srv)
+
+	// Initialize all metrics.
+	grpcMetrics.InitializeMetrics(srv)
+
 	// Register Prometheus metrics handler.
 	http.Handle("/metrics", promhttp.Handler())
 	// Start your http server for prometheus.
 	go func() {
-		if err := http.ListenAndServe(":9000", nil); err != nil { // TODO: make port number environment variable
-
+		if err := httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("Unable to start a http server for Prometheus: %v", err)
 		}
 	}()
@@ -45,8 +82,6 @@ func main() {
 	}
 	log.Fatal(srv.Serve(l))
 }
-
-type bookShelfServer struct{}
 
 type length int64
 
@@ -112,6 +147,9 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 		return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
 	}
 
+	promBookUpdateCounterMetric.WithLabelValues(book.Title).Inc()
+	promCurrentPageGaugeMetric.WithLabelValues(book.Title).Set(float64(book.Current))
+
 	return book, nil
 }
 
@@ -153,6 +191,36 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	if err != nil {
 		return nil, err
 	}
+
+	newList, err := updateBookList(l, b)
+	if err != nil {
+		return nil, err
+	}
+
+	var updatedBook *gbookshelf.Book
+	for _, book := range newList.Books {
+		if book.Title == b.Title {
+			updatedBook = book
+		}
+	}
+
+	// TODO: find a better way to update a book in db
+	err = os.Remove(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+	}
+
+	for _, book := range newList.Books {
+		bss.Add(ctx, book)
+	}
+
+	promCurrentPageGaugeMetric.WithLabelValues(updatedBook.Title).Set(float64(updatedBook.Current))
+	promBookUpdateCounterMetric.WithLabelValues(updatedBook.Title).Inc()
+
+	return b, nil
+}
+
+func updateBookList(l *gbookshelf.Books, b *gbookshelf.Book) (*gbookshelf.Books, error) {
 	updated := false
 	var newList gbookshelf.Books
 	for _, book := range l.Books {
@@ -190,15 +258,5 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		return nil, fmt.Errorf("could not find a book title: %v", b.Title)
 	}
 
-	// TODO: find a better way to update a book in db
-	err = os.Remove(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
-	}
-
-	for _, book := range newList.Books {
-		bss.Add(ctx, book)
-	}
-
-	return b, nil
+	return &newList, nil
 }
