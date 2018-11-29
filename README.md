@@ -15,7 +15,9 @@ make install
 
 ## Run Bookshelf Server
 ```shell
-$ gbookshelf-server # in a terminal
+$ export PROJECT_ID=<Project ID>; \
+export GCLOUD_CRENTIAL_FILE_PATH=<path/to/credentials>;  \
+gbookshelf-server # in a terminal
 ```
 
 

@@ -1,21 +1,19 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
 
+	firebase "cloud.google.com/go/firestore"
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
-	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/api/option"
 	grpc "google.golang.org/grpc"
 )
 
@@ -39,6 +37,9 @@ var (
 		Name: "gbookshelf_book_current_page",
 		Help: "The current page position of book.",
 	}, []string{"book_title"})
+
+	projectID      = os.Getenv("PROJECT_ID")
+	optCredentials = option.WithCredentialsFile(os.Getenv("GCLOUD_CRENTIAL_FILE_PATH"))
 )
 
 func init() {
@@ -69,13 +70,14 @@ func main() {
 
 	// Register Prometheus metrics handler.
 	http.Handle("/metrics", promhttp.Handler())
-	// Start your http server for prometheus.
+	// Start http server for prometheus.
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("Unable to start a http server for Prometheus: %v", err)
 		}
 	}()
 
+	// Start gbookshelf service
 	l, err := net.Listen("tcp", ":8888") // TODO: make port number environment variable
 	if err != nil {
 		log.Fatalf("could not listen to :8888: %v", err)
@@ -83,70 +85,59 @@ func main() {
 	log.Fatal(srv.Serve(l))
 }
 
-type length int64
-
-const (
-	sizeOfLength = 8
-	dbPath       = "mydb.pb" //TODO: where should I define it and keep it configurable for testing?
-)
-
-var endianness = binary.LittleEndian
-
 func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbookshelf.Books, error) {
-	b, err := ioutil.ReadFile(dbPath)
+	// Initialize Firestore client
+	client, err := firebase.NewClient(ctx, projectID, optCredentials)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not read %s: %v", dbPath, err)
+		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
 	}
+	defer client.Close()
+
+	bookshelf := client.Collection("bookShelf")
+	docs := bookshelf.Documents(ctx)
+	defer docs.Stop()
 
 	var books gbookshelf.Books
-	for {
-		if len(b) == 0 {
-			return &books, nil
-		} else if len(b) < sizeOfLength {
-			return nil, fmt.Errorf("remaining odd %d bytes, what to do?", len(b))
-		}
-
-		var l length
-		if err := binary.Read(bytes.NewReader(b[:sizeOfLength]), endianness, &l); err != nil {
-			return nil, fmt.Errorf("cloud not decode message length: %v", err)
-		}
-
-		b = b[sizeOfLength:]
+	bs, err := docs.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("could not get all books in bookshelf: %v", err)
+	}
+	for _, b := range bs {
+		// FIXME: Now: all ok of type assertion is ignored.
+		// TODO: Don't want to map variables by myself
+		title := b.Data()["title"].(string)
+		page := b.Data()["page"].(int64)
+		done := b.Data()["done"].(bool)
+		current := b.Data()["current"].(int64)
 
 		var book gbookshelf.Book
-		if err := proto.Unmarshal(b[:l], &book); err != nil {
-			return nil, fmt.Errorf("cloud not read book: %v", err)
-		}
-		b = b[l:]
+		book = gbookshelf.Book{Title: title, Page: int32(page), Done: done, Current: int32(current)}
+
 		books.Books = append(books.Books, &book)
 	}
+
+	return &books, nil
 }
 
 func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.Book, error) {
-	b, err := proto.Marshal(book)
+	// Initialize Firestore client
+	client, err := firebase.NewClient(ctx, projectID, optCredentials)
 	if err != nil {
-		return nil, fmt.Errorf("could not encode book: %v", err)
+		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
 	}
+	defer client.Close()
 
-	// TODO: find the best place to manage protobuf data other than a local file
-	f, err := os.OpenFile(dbPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	// Create a book document
+	wRes, err := client.Doc("bookShelf/"+book.Title).Create(ctx, map[string]interface{}{
+		"title":   book.Title,
+		"page":    book.Page,
+		"done":    book.Done,
+		"current": book.Current,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("cloud not open %s: %v", dbPath, err)
+		log.Fatalf("Failed adding alovelace: %v", err)
 	}
-
-	if err := binary.Write(f, endianness, length(len(b))); err != nil {
-		return nil, fmt.Errorf("could not encode length of message: %v", err)
-	}
-
-	_, err = f.Write(b)
-	if err != nil {
-		return nil, fmt.Errorf("could not write book to file: %v", err)
-	}
-
-	if err := f.Close(); err != nil {
-		return nil, fmt.Errorf("cloud not close file %s: %v", dbPath, err)
-	}
-
+	log.Printf("New book '%s' added successfully: %v", book.Title, wRes)
 	promBookUpdateCounterMetric.WithLabelValues(book.Title).Inc()
 	promCurrentPageGaugeMetric.WithLabelValues(book.Title).Set(float64(book.Current))
 
@@ -154,39 +145,11 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 }
 
 func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Book, error) {
-	l, err := bss.List(ctx, &gbookshelf.Void{})
-	if err != nil {
-		return nil, err
-	}
-	removed := false
-	var newList gbookshelf.Books
-	for _, book := range l.Books {
-		if book.Title == rb.Title {
-			log.Printf("Remove %v from bookshelf\n", book)
-			removed = true
-			continue
-		}
-		newList.Books = append(newList.Books, book)
-	}
-
-	if removed != true {
-		return nil, fmt.Errorf("could not find a book that you specified. Check title again: %v", rb)
-	}
-
-	// TODO: find a better way to remove a book from db
-	err = os.Remove(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
-	}
-
-	for _, book := range newList.Books {
-		bss.Add(ctx, book)
-	}
-
-	return rb, nil
+	return nil, nil
 }
 
 func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
+	// FIXME It is not necessary anymore
 	l, err := bss.List(ctx, &gbookshelf.Void{})
 	if err != nil {
 		return nil, err
@@ -197,25 +160,33 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 		return nil, err
 	}
 
-	var updatedBook *gbookshelf.Book
 	for _, book := range newList.Books {
 		if book.Title == b.Title {
-			updatedBook = book
+			b = book
 		}
 	}
 
-	// TODO: find a better way to update a book in db
-	err = os.Remove(dbPath)
+	// Initialize Firestore client
+	client, err := firebase.NewClient(ctx, projectID, optCredentials)
 	if err != nil {
-		return nil, fmt.Errorf("could not remove %s: %v", dbPath, err)
+		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
 	}
+	defer client.Close()
 
-	for _, book := range newList.Books {
-		bss.Add(ctx, book)
+	// Update a book document
+	wRes, err := client.Doc("bookShelf/"+b.Title).Update(ctx, []firebase.Update{
+		{Path: "title", Value: b.Title},
+		{Path: "page", Value: b.Page},
+		{Path: "done", Value: b.Done},
+		{Path: "current", Value: b.Current},
+	})
+	if err != nil {
+		log.Fatalf("Failed adding alovelace: %v", err)
 	}
+	log.Printf("New book '%s' added successfully: %v", b.Title, wRes)
 
-	promCurrentPageGaugeMetric.WithLabelValues(updatedBook.Title).Set(float64(updatedBook.Current))
-	promBookUpdateCounterMetric.WithLabelValues(updatedBook.Title).Inc()
+	promCurrentPageGaugeMetric.WithLabelValues(b.Title).Set(float64(b.Current))
+	promBookUpdateCounterMetric.WithLabelValues(b.Title).Inc()
 
 	return b, nil
 }

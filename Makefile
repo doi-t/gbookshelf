@@ -12,8 +12,8 @@ install: ensure generate
 	go install ./cmd/gbookshelf-server
 	go install ./cmd/gbsctl
 
-test: install
-	./scripts/integration_test.sh
+# test: install
+# 	./scripts/integration_test.sh
 
 add:
 	./scripts/cobra_add.sh $(COMMAND)
