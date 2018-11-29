@@ -36,8 +36,8 @@ var (
 
 	// Create a customized counter metric.
 	promCurrentPageGaugeMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "gbookshelf_current_page_gauge",
-		Help: "The current page position of the book.",
+		Name: "gbookshelf_book_current_page",
+		Help: "The current page position of book.",
 	}, []string{"book_title"})
 )
 
@@ -74,7 +74,6 @@ func main() {
 		if err := httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("Unable to start a http server for Prometheus: %v", err)
 		}
-
 	}()
 
 	l, err := net.Listen("tcp", ":8888") // TODO: make port number environment variable
@@ -120,7 +119,6 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 		}
 		b = b[l:]
 		books.Books = append(books.Books, &book)
-
 	}
 }
 
