@@ -1,23 +1,10 @@
 #!/bin/bash
-# set -x
-gbookshelf-server &
-rm -f mydb.pb
-gbsctl add hoge fuga -p 100
-gbsctl add foo bar
-gbsctl add Designing Data-Intensive Applications --page 624
-gbsctl update Designing Data-Intensive Applications --current 345
-gbsctl list
-gbsctl remove foo bar
-gbsctl list
-gbsctl update hoge fuga -c 50
-gbsctl list
-gbsctl update hoge fuga -c 60 -p 111
-gbsctl list
-gbsctl update hoge fuga -c 222 -p 222 -s done
-gbsctl list
-gbsctl update hoge fuga -s 'incomplete'
-gbsctl update Designing Data-Intensive Applications --status done
-gbsctl list --incomplete_only
-gbsctl update hoge fuga -c 555 -p 333
-gbsctl list
-pkill gbookshelf-server
+set -e
+
+[ $# -ne 3 ] && echo "Usage: $0 <Project ID> </path/to/credentials> <BOOKSHELF>" && exit 1
+export PROJECT_ID=${1}
+export GCLOUD_CRENTIAL_FILE_PATH=${2} 
+export BOOKSHELF=${3}
+go test ./... -v -coverprofile=coverage.out
+go tool cover -func=coverage.out
+echo "Run 'go tool cover -html=coverage.out' to see coverage in browser."
