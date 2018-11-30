@@ -89,9 +89,10 @@ func main() {
 
 func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbookshelf.Books, error) {
 	// Initialize Firestore client
-	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	var client *firestore.Client
+	client, err := initFirestoreClinet(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+		return nil, err
 	}
 	defer client.Close()
 
@@ -104,18 +105,11 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	if err != nil {
 		return nil, fmt.Errorf("could not get all books in bookshelf: %v", err)
 	}
+
+	var book *gbookshelf.Book
 	for _, b := range bs {
-		// FIXME: Now: all ok of type assertion is ignored.
-		// TODO: Don't want to map variables by myself
-		title := b.Data()["title"].(string)
-		page := b.Data()["page"].(int64)
-		done := b.Data()["done"].(bool)
-		current := b.Data()["current"].(int64)
-
-		var book gbookshelf.Book
-		book = gbookshelf.Book{Title: title, Page: int32(page), Done: done, Current: int32(current)}
-
-		books.Books = append(books.Books, &book)
+		book = convertBookDocToMsg(b)
+		books.Books = append(books.Books, book)
 	}
 
 	return &books, nil
@@ -123,9 +117,10 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 
 func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbookshelf.Book, error) {
 	// Initialize Firestore client
-	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	var client *firestore.Client
+	client, err := initFirestoreClinet(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+		return nil, err
 	}
 	defer client.Close()
 
@@ -148,9 +143,10 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 
 func (bss bookShelfServer) Remove(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
 	// Initialize Firestore client
-	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	var client *firestore.Client
+	client, err := initFirestoreClinet(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+		return nil, err
 	}
 	defer client.Close()
 
@@ -163,9 +159,10 @@ func (bss bookShelfServer) Remove(ctx context.Context, b *gbookshelf.Book) (*gbo
 
 func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
 	// Initialize Firestore client
-	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	var client *firestore.Client
+	client, err := initFirestoreClinet(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+		return nil, err
 	}
 	defer client.Close()
 
@@ -202,6 +199,15 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	promBookUpdateCounterMetric.WithLabelValues(b.Title).Inc()
 
 	return b, nil
+}
+
+func initFirestoreClinet(ctx context.Context) (*firestore.Client, error) {
+	// TODO: make sure if it is necessary to Initialize client for each operation or not
+	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	if err != nil {
+		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+	}
+	return client, nil
 }
 
 func convertBookDocToMsg(d *firestore.DocumentSnapshot) *gbookshelf.Book {
