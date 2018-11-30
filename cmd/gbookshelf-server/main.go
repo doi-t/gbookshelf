@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/firestore"
 	firebase "cloud.google.com/go/firestore"
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
 	"github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -38,8 +39,9 @@ var (
 		Help: "The current page position of book.",
 	}, []string{"book_title"})
 
-	projectID      = os.Getenv("PROJECT_ID")
-	optCredentials = option.WithCredentialsFile(os.Getenv("GCLOUD_CRENTIAL_FILE_PATH"))
+	projectID           = os.Getenv("PROJECT_ID")
+	optCredentials      = option.WithCredentialsFile(os.Getenv("GCLOUD_CRENTIAL_FILE_PATH"))
+	bookshelfCollection = os.Getenv("BOOKSHELF")
 )
 
 func init() {
@@ -93,7 +95,7 @@ func (bookShelfServer) List(ctx context.Context, void *gbookshelf.Void) (*gbooks
 	}
 	defer client.Close()
 
-	bookshelf := client.Collection("bookShelf")
+	bookshelf := client.Collection(bookshelfCollection)
 	docs := bookshelf.Documents(ctx)
 	defer docs.Stop()
 
@@ -128,7 +130,7 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 	defer client.Close()
 
 	// Create a book document
-	wRes, err := client.Doc("bookShelf/"+book.Title).Create(ctx, map[string]interface{}{
+	wRes, err := client.Doc(bookshelfCollection+"/"+book.Title).Create(ctx, map[string]interface{}{
 		"title":   book.Title,
 		"page":    book.Page,
 		"done":    book.Done,
@@ -144,28 +146,7 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 	return book, nil
 }
 
-func (bss bookShelfServer) Remove(ctx context.Context, rb *gbookshelf.Book) (*gbookshelf.Book, error) {
-	return nil, nil
-}
-
-func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
-	// FIXME It is not necessary anymore
-	l, err := bss.List(ctx, &gbookshelf.Void{})
-	if err != nil {
-		return nil, err
-	}
-
-	newList, err := updateBookList(l, b)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, book := range newList.Books {
-		if book.Title == b.Title {
-			b = book
-		}
-	}
-
+func (bss bookShelfServer) Remove(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
 	// Initialize Firestore client
 	client, err := firebase.NewClient(ctx, projectID, optCredentials)
 	if err != nil {
@@ -173,17 +154,49 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	}
 	defer client.Close()
 
-	// Update a book document
-	wRes, err := client.Doc("bookShelf/"+b.Title).Update(ctx, []firebase.Update{
-		{Path: "title", Value: b.Title},
-		{Path: "page", Value: b.Page},
-		{Path: "done", Value: b.Done},
-		{Path: "current", Value: b.Current},
+	if _, err = client.Doc(bookshelfCollection + "/" + b.Title).Delete(ctx); err != nil {
+		return nil, fmt.Errorf("cloud not remove a book '%s': %v", b.Title, err)
+	}
+
+	return b, nil
+}
+
+func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbookshelf.Book, error) {
+	// Initialize Firestore client
+	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	if err != nil {
+		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+	}
+	defer client.Close()
+
+	ny := client.Doc(bookshelfCollection + "/" + b.Title)
+	err = client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc, err := tx.Get(ny)
+		if err != nil {
+			return err
+		}
+
+		var ud *gbookshelf.Book
+		ud, err = validateBookStatus(convertBookDocToMsg(doc), b)
+		if err != nil {
+			return err
+		}
+
+		// Update a book document
+		return tx.Update(ny, []firebase.Update{
+			{Path: "title", Value: ud.Title},
+			{Path: "page", Value: ud.Page},
+			{Path: "done", Value: ud.Done},
+			{Path: "current", Value: ud.Current},
+		})
 	})
 	if err != nil {
-		log.Fatalf("Failed adding alovelace: %v", err)
+		// TODO: Handle error.
 	}
-	log.Printf("New book '%s' added successfully: %v", b.Title, wRes)
+	if err != nil {
+		return nil, fmt.Errorf("could not update a book '%s': %v", b.Title, err)
+	}
+	log.Printf("The book '%s' updated successfully", b.Title)
 
 	promCurrentPageGaugeMetric.WithLabelValues(b.Title).Set(float64(b.Current))
 	promBookUpdateCounterMetric.WithLabelValues(b.Title).Inc()
@@ -191,43 +204,52 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 	return b, nil
 }
 
-func updateBookList(l *gbookshelf.Books, b *gbookshelf.Book) (*gbookshelf.Books, error) {
-	updated := false
-	var newList gbookshelf.Books
-	for _, book := range l.Books {
-		if book.Title == b.Title {
-			var p int32
-			if b.Page == 0 {
-				p = book.Page
-			} else {
-				p = b.Page
-			}
+func convertBookDocToMsg(d *firestore.DocumentSnapshot) *gbookshelf.Book {
+	title := d.Data()["title"].(string)
+	page := d.Data()["page"].(int64)
+	done := d.Data()["done"].(bool)
+	current := d.Data()["current"].(int64)
 
-			var c int32
-			if b.Current == 0 {
-				c = book.Current
-			} else {
-				c = b.Current
-			}
-
-			if c > p {
-				return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of %s", c, p, book.Title)
-			}
-
-			book = &gbookshelf.Book{
-				Title:   book.Title,
-				Page:    p,
-				Done:    b.Done,
-				Current: c,
-			}
-			log.Printf("Update %v-> %v\n", b, book)
-			updated = true
-		}
-		newList.Books = append(newList.Books, book)
-	}
-	if updated != true {
-		return nil, fmt.Errorf("could not find a book title: %v", b.Title)
+	var book *gbookshelf.Book
+	book = &gbookshelf.Book{Title: title,
+		Page:    int32(page),
+		Done:    done,
+		Current: int32(current),
 	}
 
-	return &newList, nil
+	return book
+
+}
+
+func validateBookStatus(d *gbookshelf.Book, b *gbookshelf.Book) (*gbookshelf.Book, error) {
+	// Keep page in DB if given page is default value (0)
+	var p int32
+	if b.Page == 0 {
+		p = d.Page
+	} else {
+		p = b.Page
+	}
+
+	// Keep current page position in DB if given current page position is default value (0)
+	var c int32
+	if b.Current == 0 {
+		c = d.Current
+	} else {
+		c = b.Current
+	}
+
+	if c > p {
+		return nil, fmt.Errorf("The current page position (%d) can be not larger than the number of page (%d) of %s", c, p, d.Title)
+	}
+
+	var book *gbookshelf.Book
+	book = &gbookshelf.Book{
+		Title:   d.Title, // must equals to b.Title
+		Page:    p,
+		Done:    b.Done, // use given status
+		Current: c,
+	}
+	log.Printf("Update %v-> %v\n", d, book)
+
+	return book, nil
 }
