@@ -1,9 +1,11 @@
+// Currently all tests which require a database access actually access Firestore
+// TODO: Mock Firestore accesses. Want to have Firestore local...
+
 package main
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/doi-t/gbookshelf/pkg/apis/gbookshelf"
@@ -12,21 +14,6 @@ import (
 var books = []gbookshelf.Book{
 	{Title: "Designing Data-Intensive Applications", Page: 624, Done: false, Current: 20},
 	{Title: "default value book"},
-}
-
-func initBookshelf(dbPath string, t *testing.T) {
-	t.Helper()
-	err := os.Remove(dbPath)
-	if err != nil {
-		t.Errorf("%s did not exist but it's fine.", dbPath)
-	}
-	bss := bookShelfServer{}
-	for _, b := range books {
-		_, err := bss.Add(context.Background(), &b)
-		if err != nil {
-			t.Fatalf("failed to initialize bookshelf: %v", err)
-		}
-	}
 }
 
 func TestAdd(t *testing.T) {
@@ -68,7 +55,6 @@ func TestList(t *testing.T) {
 	}{
 		{"list added book", "Designing Data-Intensive Applications", 624, 20, 2},
 	}
-	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}
@@ -95,10 +81,9 @@ func TestUpdate(t *testing.T) {
 		{name: "update added book", title: "Designing Data-Intensive Applications", current: 400},
 		{name: "update zero page book", title: "default value book", page: 111},
 		{name: "finish to read", title: "Designing Data-Intensive Applications", done: true},
-		{name: "invalid current page position", title: "Designing Data-Intensive Applications", current: 9999, err: "The current page position (9999) can be not larger than the number of page (624) of Designing Data-Intensive Applications"},
-		{name: "unknown titlel", title: "Unknown book", err: "could not find a book title: Unknown book"},
+		{name: "invalid current page position", title: "Designing Data-Intensive Applications", current: 9999, err: "could not update a book 'Designing Data-Intensive Applications': The current page position (9999) can be not larger than the number of page (624) of Designing Data-Intensive Applications"},
+		{name: "unknown titlel", title: "Unknown book", err: "could not update a book 'Unknown book': rpc error: code = NotFound desc = \"projects/doi-t-alpha/databases/(default)/documents/bookShelfTest/Unknown book\" not found"},
 	}
-	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}
@@ -134,9 +119,9 @@ func TestRemove(t *testing.T) {
 		name  string
 		title string
 	}{
-		{"list added book", "Designing Data-Intensive Applications"},
+		{"remove a book", "Designing Data-Intensive Applications"},
+		{"cleanup test database", "default value book"},
 	}
-	initBookshelf(dbPath, t) // Using a global variable in main.go
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			bss := bookShelfServer{}

@@ -1,4 +1,7 @@
 COMMAND:=
+PROJECT_ID:=
+GCLOUD_CRENTIAL_FILE_PATH:=
+BOOKSHELF:=bookShelfTest
 
 .PHONY: generate, ensure, install, test, add
 
@@ -13,7 +16,9 @@ install: ensure generate
 	go install ./cmd/gbsctl
 
 test: install
-	./scripts/integration_test.sh
+	./scripts/integration_test.sh $(PROJECT_ID) $(GCLOUD_CRENTIAL_FILE_PATH) $(BOOKSHELF)
+
+
 
 add:
 	./scripts/cobra_add.sh $(COMMAND)
