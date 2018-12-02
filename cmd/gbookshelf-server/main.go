@@ -39,9 +39,9 @@ var (
 		Help: "The current page position of book.",
 	}, []string{"book_title"})
 
-	projectID           = os.Getenv("PROJECT_ID")
-	optCredentials      = option.WithCredentialsFile(os.Getenv("GCLOUD_CRENTIAL_FILE_PATH"))
-	bookshelfCollection = os.Getenv("BOOKSHELF")
+	projectID               = os.Getenv("PROJECT_ID")
+	optFirestoreCredentials = option.WithCredentialsFile(os.Getenv("FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH"))
+	bookshelfCollection     = os.Getenv("BOOKSHELF")
 )
 
 func init() {
@@ -132,7 +132,7 @@ func (bookShelfServer) Add(ctx context.Context, book *gbookshelf.Book) (*gbooksh
 		"current": book.Current,
 	})
 	if err != nil {
-		log.Fatalf("Failed adding alovelace: %v", err)
+		log.Fatalf("could not add a book: %v", err)
 	}
 	log.Printf("New book '%s' added successfully: %v", book.Title, wRes)
 	promBookUpdateCounterMetric.WithLabelValues(book.Title).Inc()
@@ -203,9 +203,10 @@ func (bss bookShelfServer) Update(ctx context.Context, b *gbookshelf.Book) (*gbo
 
 func initFirestoreClinet(ctx context.Context) (*firestore.Client, error) {
 	// TODO: make sure if it is necessary to Initialize client for each operation or not
-	client, err := firebase.NewClient(ctx, projectID, optCredentials)
+	client, err := firebase.NewClient(ctx, projectID, optFirestoreCredentials)
 	if err != nil {
-		return nil, fmt.Errorf("cloud not Initialize new Firestore app: %v", err)
+		log.Printf("cloud not initialize new Firestore app: %v", err)
+		return nil, fmt.Errorf("cloud not initialize new Firestore app: %v", err)
 	}
 	return client, nil
 }
