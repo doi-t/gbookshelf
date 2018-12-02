@@ -17,6 +17,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /server ${TARGE
 
 # FROM scratch
 FROM alpine
+RUN apk update && \
+   apk add ca-certificates && \
+   update-ca-certificates && \
+   rm -rf /var/cache/apk/*
 WORKDIR /
 COPY --from=builder /server /server
 
