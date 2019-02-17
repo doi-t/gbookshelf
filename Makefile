@@ -2,6 +2,7 @@ COMMAND:=
 PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
 BOOKSHELF:=bookShelfTest
+BUILD_DRYRUN:=false
 
 .PHONY: generate ensure install test add build run
 
@@ -31,3 +32,21 @@ run:
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
 	gbookshelf-server:local 
+
+build-local:
+	cloud-build-local --config=cloudbuild.yaml --dryrun=$(BUILD_DRYRUN) .
+
+submit:
+	gcloud builds submit --config cloudbuild.yaml .
+
+run-gcp:
+	gcloud auth configure-docker
+	docker run -p 8888:8888 -p 2112:2112 \
+	-e "BOOKSHELF=${BOOKSHELF}" \
+	-e "PROJECT_ID=$(PROJECT_ID)" \
+	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
+	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
+    gcr.io/$(PROJECT_ID)/gbookshelf-server:latest
+
+drmi:
+	docker rmi $(docker images --filter "dangling=true" -q --no-trunc)

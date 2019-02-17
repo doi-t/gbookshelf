@@ -46,6 +46,26 @@ FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=</path/to/credentials> \
 run
 ```
 
+### Local build with cloud-build-local
+```shell
+make build-local
+```
+
+### Submit container image to GCR
+```shell
+make submit
+```
+
+### Run submitted container image on local
+```shell
+make build
+make \
+BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
+PROJECT_ID=<Project ID> \
+FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=</path/to/credentials> \
+run-gcp
+```
+
 # References
 - https://github.com/campoy/justforfunc
 - https://github.com/golang-standards/project-layout
