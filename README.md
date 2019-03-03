@@ -71,3 +71,4 @@ run-gcp
 - https://github.com/golang-standards/project-layout
 - https://godoc.org/github.com/golang/protobuf/proto
 - https://godoc.org/cloud.google.com/go/firestore
+- https://github.com/grpc/grpc-web
