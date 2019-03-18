@@ -63,3 +63,17 @@ run-gcp:
 
 drmi:
 	docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+
+kube-describles:
+	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
+	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace gbookshelf-server
+
+# TODO: update 'base' to overlay name accordingly
+kube-build:
+	kustomize build deployments/base
+
+kube-apply:
+	kustomize build deployments/base | kubectl apply -f -
+
+kube-delete:
+	kustomize build deployments/base | kubectl delete -f -

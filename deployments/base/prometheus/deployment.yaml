@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: prometheus
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: prometheus
+      annotations:
+    spec:
+      serviceAccountName: gbookshelf-monitoring-prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        imagePullPolicy: Always
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yaml"
+        - "--storage.tsdb.path=/prometheus/"
+        - "--web.enable-lifecycle"
+        - "--storage.tsdb.retention=$(TSDB_RETENTION)"
+        ports:
+        - name: prometheus
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: TSDB_RETENTION
+          valueFrom:
+            configMapKeyRef:
+              name: prometheus-server-args
+              key: tsdbRetention
+        resources:
+          limits:
+            cpu: 100m
+            memory: 150Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: prometheus-server-config
+          mountPath: /etc/prometheus
+          readOnly: true
+        - name: prometheus-rule-config
+          mountPath: /etc/prometheus/rules
+          readOnly: true
+        - name: prometheus-storage-tsdb-volume
+          mountPath: /prometheus
+      volumes:
+        - name: prometheus-server-config
+          configMap:
+            name: prometheus-server-config
+            defaultMode: 420
+        - name: prometheus-rule-config
+          configMap:
+            name: prometheus-rule-config
+            defaultMode: 420
+        - name: prometheus-storage-tsdb-volume
+          # NOTE: Depends on environment
+          emptyDir: {} # TODO: Delete it once I have deployment environment
+      securityContext: # To avoid "open /prometheus/lock: permission denied"
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000

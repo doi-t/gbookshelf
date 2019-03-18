@@ -1,0 +1,11 @@
+global:
+  slack_api_url: 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX'
+
+route:
+  receiver: 'slack'
+
+receivers:
+- name: 'slack'
+  slack_configs:
+  - channel: '#test'
+    text: 'test alert from local: {{ .GroupLabels.app }}, {{ .GroupLabels.alertname }}'

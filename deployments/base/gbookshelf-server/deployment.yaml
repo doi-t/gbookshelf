@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gbookshelf-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gbookshelf-server
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: gbookshelf-server
+      annotations:
+    spec:
+      containers:
+      - name: gbookshelf-server
+        image: gcr.io/gbookshelf-dev/gbookshelf-server:latest
+        imagePullPolicy: Always
+        ports:
+        - name: gbookshelf
+          containerPort: 8888
+          protocol: TCP
+        - name: prometheus
+          containerPort: 2112
+          protocol: TCP
+        env:
+        - name: BOOKSHELF
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: bookshelf
+        - name: PROJECT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: project_id
+        - name: FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: firestore_adminsdk_crential_file_path
+        volumeMounts:
+        - name: secret-volume
+          mountPath: "/credentials/firebase"
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: firebase-secret
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
