@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: grafana
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: grafana
+      annotations:
+    spec:
+      # serviceAccountName: gbookshelf-monitoring-grafana
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        imagePullPolicy: Always
+        args:
+        ports:
+        - name: grafana
+          containerPort: 3000
+          protocol: TCP
+        env:
+        resources:
+          limits:
+            cpu: 100m
+            memory: 150Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: grafana-datasource-config
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: true
+        - name: grafana-dashboard-config
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: true
+      volumes:
+        - name: grafana-datasource-config
+          configMap:
+            name: grafana-datasource-config
+            defaultMode: 420
+        - name: grafana-dashboard-config
+          configMap:
+            name: grafana-dashboard-config
+            defaultMode: 420
+      securityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000

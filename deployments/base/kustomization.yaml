@@ -12,6 +12,8 @@ resources:
 - prometheus/clusterRole.yaml
 - alertmanager/deployment.yaml
 - alertmanager/service.yaml
+- grafana/deployment.yaml
+- grafana/service.yaml
 configMapGenerator:
 - literals:
   - bookshelf=mybookshelf
@@ -33,6 +35,12 @@ configMapGenerator:
 - files:
   - alertmanager/alertmanager.yaml
   name: alertmanager-config
+- files:
+  - grafana/provisioning/datasources/datasource.yaml
+  name: grafana-datasource-config
+- files:
+  - grafana/provisioning/dashboards/dashboard.yaml
+  name: grafana-dashboard-config
 secretGenerator:
 - files:
   - .credentials/gbookshelf-firebase-adminsdk.json
