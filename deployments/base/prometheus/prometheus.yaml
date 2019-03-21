@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    env: base # TODO: kustomize: patch it in each overlay
+
+rule_files:
+  - /etc/prometheus/rules/*.yaml
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093 # NOTE: If alertmanager lives in different namespace, use FQDN ([my-svc].[my-namespace].svc.cluster.local:9093) instead
+
+scrape_configs:
+
+- job_name: 'prometheus'
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: 'gbookshelf'
+  static_configs:
+  - targets: ['gbookshelf-server:2112']
+
+# TODO: https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml
