@@ -11,8 +11,7 @@ alerting:
   alertmanagers:
   - static_configs:
     - targets:
-      - localhost:9093 # TODO: kustomize: patch fqdn with [my-svc].[my-namespace].svc.cluster.local:9093 in each overlay
-
+      - alertmanager:9093 # NOTE: If alertmanager lives in different namespace, use FQDN ([my-svc].[my-namespace].svc.cluster.local:9093) instead
 
 # Ref. https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml
 scrape_configs:
