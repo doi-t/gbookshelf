@@ -15,6 +15,15 @@ alerting:
 
 # Ref. https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml
 scrape_configs:
+
+- job_name: 'prometheus'
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: 'gbookshelf'
+  static_configs:
+  - targets: ['gbookshelf-server:2112']
+
 - job_name: "kubernetes-apiservers"
   kubernetes_sd_configs:
     - role: endpoints
