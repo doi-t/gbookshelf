@@ -64,6 +64,9 @@ run-gcp:
 drmi:
 	docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
+tf-apply:
+	cd deployments/tf/; terraform apply
+
 kube-describles:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
 	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace gbookshelf-server

@@ -62,6 +62,11 @@ resource "google_container_cluster" "gbookshelf" {
 
     tags = ["${local.project_name}", "${local.env}"]
   }
+  addons_config {
+    kubernetes_dashboard {
+      disabled = true
+    }
+  }
 }
 
 resource "google_container_node_pool" "gbookshelf_preemptible_nodes" {
@@ -69,6 +74,11 @@ resource "google_container_node_pool" "gbookshelf_preemptible_nodes" {
   region     = "${local.region}"
   cluster    = "${google_container_cluster.gbookshelf.name}"
   node_count = 1
+
+  management {
+    auto_repair  = true
+    auto_upgrade = false
+  }
 
   node_config {
     preemptible  = true
@@ -80,6 +90,10 @@ resource "google_container_node_pool" "gbookshelf_preemptible_nodes" {
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
     ]
+
+    metadata {
+      disable-legacy-endpoints = "true"
+    }
   }
 }
 
