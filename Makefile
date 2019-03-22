@@ -73,6 +73,9 @@ drmi:
 tf-apply:
 	cd deployments/tf/; terraform apply
 
+tf-destroy:
+	cd deployments/tf/; terraform destroy
+
 kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
 
@@ -96,5 +99,5 @@ kube-apply:
 kube-delete:
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
-	kustomize build deployments/overlays/$(ENV); \
+	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl delete -f -
