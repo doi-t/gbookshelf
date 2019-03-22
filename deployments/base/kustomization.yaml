@@ -45,6 +45,7 @@ configMapGenerator:
   name: grafana-datasource-config
 - files:
   - grafana/provisioning/dashboards/dashboard.yaml
+  - grafana/provisioning/dashboards/gbookshelf.json
   name: grafana-dashboard-config
 secretGenerator:
 - files:
