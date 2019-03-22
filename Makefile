@@ -29,7 +29,6 @@ add:
 
 build:
 	docker build -f Dockerfile -t gbookshelf-server:local .
-	docker build -f build/Dockerfile.envoy -t envoy:local .
 
 run:
 	docker run -p 8888:8888 -p 2112:2112 \
@@ -38,9 +37,6 @@ run:
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
 	gbookshelf-server:local 
-
-run-envoy:
-	docker run -p 8080:8080 envoy:local
 
 run-vue:
 	cd web/gbookshelf-vue
@@ -67,8 +63,10 @@ drmi:
 tf-apply:
 	cd deployments/tf/; terraform apply
 
-kube-describles:
+kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
+
+kube-describles: kube-init
 	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace gbookshelf-server
 
 # TODO: update 'base' to overlay name accordingly

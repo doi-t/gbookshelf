@@ -53,10 +53,38 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
+      - name: gbookshelf-envoy
+        image: envoyproxy/envoy:latest
+        command:
+          - "/usr/local/bin/envoy"
+        args:
+          - "--config-path /etc/envoy/envoy.yaml"
+          - "--v2-config-only"
+        ports:
+        - name: gbs-envoy
+          containerPort: 8080
+          protocol: TCP
+        - name: envoy-admin
+          containerPort: 9901
+          protocol: TCP
+        volumeMounts:
+        - name: gbookshelf-envoy
+          mountPath: /etc/envoy
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
       volumes:
       - name: secret-volume
         secret:
           secretName: firebase-secret
+      - name: gbookshelf-envoy
+        configMap:
+          name: gbookshelf-envoy-config
       securityContext:
         fsGroup: 2000
         runAsNonRoot: true

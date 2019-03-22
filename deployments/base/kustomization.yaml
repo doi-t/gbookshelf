@@ -20,6 +20,9 @@ configMapGenerator:
   - project_id=gbookshelf-dev
   - firestore_adminsdk_crential_file_path=/credentials/firebase/gbookshelf-firebase-adminsdk.json
   name: gbookshelf-server-config
+- files:
+  - gbookshelf-server/envoy.yaml
+  name: gbookshelf-envoy-config
 - literals:
   - tsdbRetention=24h
   name: prometheus-server-args
