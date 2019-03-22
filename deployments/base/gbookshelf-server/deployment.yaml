@@ -21,17 +21,27 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: gbookshelf
-          containerPort: 8888
+          containerPort: 2109
           protocol: TCP
-        - name: prometheus
+        - name: metrics
           containerPort: 2112
           protocol: TCP
         env:
-        - name: BOOKSHELF
+        - name: GBOOKSHELF_BOOKSHELF
           valueFrom:
             configMapKeyRef:
               name: gbookshelf-server-config
-              key: bookshelf
+              key: gbookshelf_bookshelf
+        - name: GBOOKSHELF_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: gbookshelf_server_port
+        - name: GBOOKSHELF_METRICS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: gbookshelf_metrics_port
         - name: PROJECT_ID
           valueFrom:
             configMapKeyRef:
@@ -53,10 +63,38 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
+      - name: gbookshelf-envoy
+        image: envoyproxy/envoy:latest
+        command:
+          - "/usr/local/bin/envoy"
+        args:
+          - "--config-path /etc/envoy/envoy.yaml"
+          - "--v2-config-only"
+        ports:
+        - name: gbookshelf
+          containerPort: 8080
+          protocol: TCP
+        - name: envoy-admin
+          containerPort: 9901
+          protocol: TCP
+        volumeMounts:
+        - name: gbookshelf-envoy
+          mountPath: /etc/envoy
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
       volumes:
       - name: secret-volume
         secret:
           secretName: firebase-secret
+      - name: gbookshelf-envoy
+        configMap:
+          name: gbookshelf-envoy-config
       securityContext:
         fsGroup: 2000
         runAsNonRoot: true

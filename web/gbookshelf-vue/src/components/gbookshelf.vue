@@ -25,7 +25,7 @@ export default {
     }
   },
   created: function () {
-    this.client = new BookShelfClient('http://localhost:8080', null, null)
+    this.client = new BookShelfClient('http://dev-gbookshelf-server:8080', null, null) // TODO: make 'dev-' dynamic
     this.List()
   },
   methods: {

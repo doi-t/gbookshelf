@@ -1,7 +1,10 @@
+ENV:=dev
 COMMAND:=
 PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
-BOOKSHELF:=bookShelfTest
+GBOOKSHELF_BOOKSHELF:=mybookshelf
+GBOOKSHELF_SERVER_PORT:=2109
+GBOOKSHELF_METRICS_PORT:=2112
 BUILD_DRYRUN:=false
 
 .PHONY: generate ensure install test add build run
@@ -29,22 +32,21 @@ add:
 
 build:
 	docker build -f Dockerfile -t gbookshelf-server:local .
-	docker build -f build/Dockerfile.envoy -t envoy:local .
 
 run:
-	docker run -p 8888:8888 -p 2112:2112 \
-	-e "BOOKSHELF=${BOOKSHELF}" \
+	docker run \
+	-p $(GBOOKSHELF_SERVER_PORT):$(GBOOKSHELF_SERVER_PORT) \
+	-p $(GBOOKSHELF_METRICS_PORT):$(GBOOKSHELF_METRICS_PORT) \
+	-e "GBOOKSHELF_BOOKSHELF=${GBOOKSHELF_BOOKSHELF}" \
 	-e "PROJECT_ID=$(PROJECT_ID)" \
+	-e "GBOOKSHELF_SERVER_PORT=$(GBOOKSHELF_SERVER_PORT)" \
+	-e "GBOOKSHELF_METRICS_PORT=$(GBOOKSHELF_METRICS_PORT)" \
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
 	gbookshelf-server:local 
 
-run-envoy:
-	docker run -p 8080:8080 envoy:local
-
 run-vue:
-	cd web/gbookshelf-vue
-	yarn run dev
+	cd web/gbookshelf-vue; yarn run dev
 
 build-local:
 	cloud-build-local --config=cloudbuild.yaml --dryrun=$(BUILD_DRYRUN) .
@@ -54,29 +56,45 @@ submit:
 
 run-gcp:
 	gcloud auth configure-docker
-	docker run -p 8888:8888 -p 2112:2112 \
-	-e "BOOKSHELF=${BOOKSHELF}" \
+	docker run \
+	-p $(GBOOKSHELF_SERVER_PORT):$(GBOOKSHELF_SERVER_PORT) \
+	-p $(GBOOKSHELF_METRICS_PORT):$(GBOOKSHELF_METRICS_PORT) \
+	-e "GBOOKSHELF_BOOKSHELF=${GBOOKSHELF_BOOKSHELF}" \
+	-e "GBOOKSHELF_SERVER_PORT=$(GBOOKSHELF_SERVER_PORT)" \
+	-e "GBOOKSHELF_METRICS_PORT=$(GBOOKSHELF_METRICS_PORT)" \
 	-e "PROJECT_ID=$(PROJECT_ID)" \
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
     gcr.io/$(PROJECT_ID)/gbookshelf-server:latest
 
 drmi:
-	docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+	docker rmi -f $$(docker images --filter "dangling=true" -q --no-trunc)
 
 tf-apply:
 	cd deployments/tf/; terraform apply
 
-kube-describles:
+kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
-	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace gbookshelf-server
 
-# TODO: update 'base' to overlay name accordingly
+kube-describles: kube-init
+	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
+
+# NOTE: Use envsubst until kustomize allows me to patch literal ConfigMap (https://github.com/kubernetes-sigs/kustomize/issues/680).
+
 kube-build:
-	kustomize build deployments/base
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV) \
+	| envsubst
 
 kube-apply:
-	kustomize build deployments/base | kubectl apply -f -
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV) \
+	| envsubst | kubectl apply -f -
 
 kube-delete:
-	kustomize build deployments/base | kubectl delete -f -
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV); \
+	| envsubst | kubectl delete -f -

@@ -44,7 +44,7 @@ func Execute() {
 var client gbookshelf.BookShelfClient
 
 func init() {
-	conn, err := grpc.Dial(":8888",
+	conn, err := grpc.Dial(":8080", // Access envoy proxy
 		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
 		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
 		grpc.WithInsecure(), // FIXME
