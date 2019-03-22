@@ -21,17 +21,27 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: gbookshelf
-          containerPort: 8888
+          containerPort: 2109
           protocol: TCP
         - name: prometheus
           containerPort: 2112
           protocol: TCP
         env:
-        - name: BOOKSHELF
+        - name: GBOOKSHELF_BOOKSHELF
           valueFrom:
             configMapKeyRef:
               name: gbookshelf-server-config
-              key: bookshelf
+              key: gbookshelf_bookshelf
+        - name: GBOOKSHELF_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: gbookshelf_server_port
+        - name: GBOOKSHELF_METRICS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: gbookshelf-server-config
+              key: gbookshelf_metrics_port
         - name: PROJECT_ID
           valueFrom:
             configMapKeyRef:

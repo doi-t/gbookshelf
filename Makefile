@@ -1,7 +1,9 @@
 COMMAND:=
 PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
-BOOKSHELF:=bookShelfTest
+GBOOKSHELF_BOOKSHELF:=mybookshelf
+GBOOKSHELF_SERVER_PORT:=2109
+GBOOKSHELF_METEICS_PORT:=2112
 BUILD_DRYRUN:=false
 
 .PHONY: generate ensure install test add build run
@@ -31,9 +33,13 @@ build:
 	docker build -f Dockerfile -t gbookshelf-server:local .
 
 run:
-	docker run -p 8888:8888 -p 2112:2112 \
-	-e "BOOKSHELF=${BOOKSHELF}" \
+	docker run \
+	-p $(GBOOKSHELF_SERVER_PORT):$(GBOOKSHELF_SERVER_PORT) \
+	-p $(GBOOKSHELF_METEICS_PORT):$(GBOOKSHELF_METEICS_PORT) \
+	-e "GBOOKSHELF_BOOKSHELF=${GBOOKSHELF_BOOKSHELF}" \
 	-e "PROJECT_ID=$(PROJECT_ID)" \
+	-e "GBOOKSHELF_SERVER_PORT=$(GBOOKSHELF_SERVER_PORT)" \
+	-e "GBOOKSHELF_METEICS_PORT=$(GBOOKSHELF_METEICS_PORT)" \
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
 	gbookshelf-server:local 
@@ -50,15 +56,19 @@ submit:
 
 run-gcp:
 	gcloud auth configure-docker
-	docker run -p 8888:8888 -p 2112:2112 \
-	-e "BOOKSHELF=${BOOKSHELF}" \
+	docker run \
+	-p $(GBOOKSHELF_SERVER_PORT):$(GBOOKSHELF_SERVER_PORT) \
+	-p $(GBOOKSHELF_METEICS_PORT):$(GBOOKSHELF_METEICS_PORT) \
+	-e "GBOOKSHELF_BOOKSHELF=${GBOOKSHELF_BOOKSHELF}" \
+	-e "GBOOKSHELF_SERVER_PORT=$(GBOOKSHELF_SERVER_PORT)" \
+	-e "GBOOKSHELF_METEICS_PORT=$(GBOOKSHELF_METEICS_PORT)" \
 	-e "PROJECT_ID=$(PROJECT_ID)" \
 	-e "FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=/credentials/firestore-adminsdk.json" \
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
     gcr.io/$(PROJECT_ID)/gbookshelf-server:latest
 
 drmi:
-	docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+	docker rmi -f $$(docker images --filter "dangling=true" -q --no-trunc)
 
 tf-apply:
 	cd deployments/tf/; terraform apply

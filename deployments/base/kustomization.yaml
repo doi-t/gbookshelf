@@ -16,7 +16,9 @@ resources:
 - grafana/service.yaml
 configMapGenerator:
 - literals:
-  - bookshelf=mybookshelf
+  - gbookshelf_bookshelf=mybookshelf
+  - gbookshelf_server_port=2109
+  - gbookshelf_metrics_port=2112
   - project_id=gbookshelf-dev
   - firestore_adminsdk_crential_file_path=/credentials/firebase/gbookshelf-firebase-adminsdk.json
   name: gbookshelf-server-config

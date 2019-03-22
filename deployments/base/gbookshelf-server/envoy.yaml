@@ -45,4 +45,4 @@ static_resources:
     hosts:
       socket_address:
         address: gbookshelf-server
-        port_value: 8888
+        port_value: 2109

@@ -41,7 +41,9 @@ var (
 
 	projectID               = os.Getenv("PROJECT_ID")
 	optFirestoreCredentials = option.WithCredentialsFile(os.Getenv("FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH"))
-	bookshelfCollection     = os.Getenv("BOOKSHELF")
+	bookshelfCollection     = os.Getenv("GBOOKSHELF_BOOKSHELF")
+	gbookshelfServerPort    = os.Getenv("GBOOKSHELF_SERVER_PORT")
+	gbookshelfMetricsPort   = os.Getenv("GBOOKSHELF_METEICS_PORT")
 )
 
 func init() {
@@ -56,7 +58,7 @@ func init() {
 // FIXME: Graceful shutdown is missing.
 func main() {
 	// Create a HTTP server for prometheus.
-	httpServer := &http.Server{Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), Addr: fmt.Sprintf("0.0.0.0:%d", 2112)}
+	httpServer := &http.Server{Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{}), Addr: fmt.Sprintf("0.0.0.0:%v", gbookshelfMetricsPort)}
 
 	// Create a gRPC Server with gRPC interceptor.
 	srv := grpc.NewServer(
@@ -80,9 +82,9 @@ func main() {
 	}()
 
 	// Start gbookshelf service
-	l, err := net.Listen("tcp", ":8888") // TODO: make port number environment variable
+	l, err := net.Listen("tcp", ":"+gbookshelfServerPort)
 	if err != nil {
-		log.Fatalf("could not listen to :8888: %v", err)
+		log.Fatalf("could not listen to :%v: %v", gbookshelfServerPort, err)
 	}
 	log.Fatal(srv.Serve(l))
 }

@@ -15,9 +15,11 @@ make install
 
 ## Run Bookshelf Server
 ```shell
-export BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
+export GBOOKSHELF_BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)>; \
+export GBOOKSHELF_SERVER_PORT=2109; \
+export GBOOKSHELF_METEICS_PORT=2112; \
 export PROJECT_ID=<Project ID>; \
-export FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=<path/to/credentials>;  \
+export GCLOUD_CRENTIAL_FILE_PATH=$(pwd)/deployments/base/.credentials/gbookshelf-firebase-adminsdk.json; \
 gbookshelf-server # in a terminal
 ```
 
@@ -32,7 +34,7 @@ gbsctl help [command]
 ```shell
 make \
 PROJECT_ID=<Project ID> \
-FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=</path/to/credentials> \
+FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=$(pwd)/deployments/base/.credentials/gbookshelf-firebase-adminsdk.json \
 test
 ```
 
@@ -40,7 +42,7 @@ test
 ```shell
 make build
 make \
-BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
+GBOOKSHELF_BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
 PROJECT_ID=<Project ID> \
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=</path/to/credentials> \
 run
@@ -58,11 +60,11 @@ make submit
 
 ### Run submitted container image on local
 ```shell
-make build
+make submit
 make \
-BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
+GBOOKSHELF_BOOKSHELF=<Your bookshelf name (= Root Collection Name in Firestore Database)> \
 PROJECT_ID=<Project ID> \
-FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=</path/to/credentials> \
+FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=$(pwd)/deployments/base/.credentials/gbookshelf-firebase-adminsdk.json \
 run-gcp
 ```
 
