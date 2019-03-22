@@ -1,3 +1,4 @@
+ENV:=dev
 COMMAND:=
 PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
@@ -76,14 +77,24 @@ kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
 
 kube-describles: kube-init
-	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace gbookshelf-server
+	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
 
-# TODO: update 'base' to overlay name accordingly
+# NOTE: Use envsubst until kustomize allows me to patch literal ConfigMap (https://github.com/kubernetes-sigs/kustomize/issues/680).
+
 kube-build:
-	kustomize build deployments/base
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV) \
+	| envsubst
 
 kube-apply:
-	kustomize build deployments/base | kubectl apply -f -
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV) \
+	| envsubst | kubectl apply -f -
 
 kube-delete:
-	kustomize build deployments/base | kubectl delete -f -
+	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	kustomize build deployments/overlays/$(ENV); \
+	| envsubst | kubectl delete -f -

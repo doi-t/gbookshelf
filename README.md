@@ -68,6 +68,31 @@ FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH=$(pwd)/deployments/base/.credentials/gbook
 run-gcp
 ```
 
+## Deploy
+
+```shell
+make tf-apply
+make kube-apply
+```
+
+### Access Services
+
+```shell
+GBOOKSHELF_ENV=dev; sudo kubefwd services --namespace ${GBOOKSHELF_ENV}-gbookshelf
+```
+
+```shell
+GBOOKSHELF_ENV=dev; kubectl port-forward $(kubectl get pods --namespace ${GBOOKSHELF_ENV}-gbookshelf -l "name=gbookshelf-server" -o jsonpath="{.items[0].metadata.name}") 8080:8080 --namespace ${GBOOKSHELF_ENV}-gbookshelf
+gbsctl list
+```
+
+## Destroy
+
+```shell
+make kube-delete
+make tf-destroy
+```
+
 # References
 - https://github.com/campoy/justforfunc
 - https://github.com/golang-standards/project-layout

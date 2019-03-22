@@ -52,7 +52,7 @@ static_resources:
     lb_policy: round_robin
     hosts:
       socket_address:
-        address: gbookshelf-server
+        address: ${GBOOKSHELF_SERVICE}
         port_value: 2109 # gRPC
   - name: gbookshelf-metrics
     connect_timeout: 0.25s
@@ -61,5 +61,5 @@ static_resources:
     lb_policy: round_robin
     hosts:
       socket_address:
-        address: gbookshelf-server
+        address:  ${GBOOKSHELF_SERVICE}
         port_value: 2112 # HTTP
