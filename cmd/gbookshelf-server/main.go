@@ -43,7 +43,7 @@ var (
 	optFirestoreCredentials = option.WithCredentialsFile(os.Getenv("FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH"))
 	bookshelfCollection     = os.Getenv("GBOOKSHELF_BOOKSHELF")
 	gbookshelfServerPort    = os.Getenv("GBOOKSHELF_SERVER_PORT")
-	gbookshelfMetricsPort   = os.Getenv("GBOOKSHELF_METEICS_PORT")
+	gbookshelfMetricsPort   = os.Getenv("GBOOKSHELF_METRICS_PORT")
 )
 
 func init() {
