@@ -5,12 +5,12 @@ metadata:
   labels:
     name: gbookshelf-server
 spec:
+  ports:
+  - name: grpc
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
   selector:
     name: gbookshelf-server
   # type: ClusterIP
   clusterIP: None # NOTE: Use headless service (load balancing by envoy instead of kube-proxy)
-  ports:
-  - name: http
-    port: 8080 # envoy listeners port
-    protocol: TCP
-    targetPort: 8080

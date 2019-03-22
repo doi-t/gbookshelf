@@ -45,8 +45,7 @@ run:
 	gbookshelf-server:local 
 
 run-vue:
-	cd web/gbookshelf-vue
-	yarn run dev
+	cd web/gbookshelf-vue; yarn run dev
 
 build-local:
 	cloud-build-local --config=cloudbuild.yaml --dryrun=$(BUILD_DRYRUN) .

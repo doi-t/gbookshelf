@@ -23,7 +23,7 @@ spec:
         - name: gbookshelf
           containerPort: 2109
           protocol: TCP
-        - name: prometheus
+        - name: metrics
           containerPort: 2112
           protocol: TCP
         env:
@@ -71,7 +71,7 @@ spec:
           - "--config-path /etc/envoy/envoy.yaml"
           - "--v2-config-only"
         ports:
-        - name: gbs-envoy
+        - name: gbookshelf
           containerPort: 8080
           protocol: TCP
         - name: envoy-admin
