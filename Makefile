@@ -45,7 +45,7 @@ run:
 	--mount type=bind,source=$(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH),target=/credentials/firestore-adminsdk.json,readonly \
 	gbookshelf-server:local 
 
-run-vue:
+run-vue: generate
 	cd web/gbookshelf-vue; yarn run dev
 
 build-local:
