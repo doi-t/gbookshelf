@@ -90,13 +90,13 @@ kube-build:
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst
 
-kube-apply:
+kube-apply: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl apply -f -
 
-kube-delete:
+kube-delete: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	kustomize build deployments/overlays/$(ENV) \
