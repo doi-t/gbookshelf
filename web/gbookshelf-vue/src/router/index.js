@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import gbookshelf from '@/components/gbookshelf'
+import Bookshelf from '@/views/Bookshelf.vue'
 
 Vue.use(Router)
 
@@ -8,8 +8,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'gbookshelf',
-      component: gbookshelf
+      name: 'bookshelf',
+      component: Bookshelf
     }
   ]
 })

@@ -1,10 +1,10 @@
 <template>
-  <div id="bookshelf">
+  <div id='bookshelf'>
     <section>
-      <span class="title-text">No more Tsundoku</span>
+      <span class='title-text'>No more Tsundoku</span>
         <div>
-        <input v-model="inputField" v-on:keyup.enter="Add" placeholder="Your new book title">
-        <button @click="Add">Add a new book to your bookshelf</button>
+        <input v-model='inputField' v-on:keyup.enter='Add' placeholder='Your new book title'>
+        <button @click='Add'>Add a new book to your bookshelf</button>
       </div>
     </section>
     <section>
@@ -15,12 +15,12 @@
             v-bind:key='book.title'
           >
             <div>
-              "{{book.title}}"
+              '{{book.title}}'
               {{book.page}}p
               ({{book.current}})
               done? {{book.done}}
-              <button @click="Update(book)">Update</button>
-              <button @click="Remove(book)">Remove</button>
+              <button @click='Update(book)'>Update</button>
+              <button @click='Remove(book)'>Remove</button>
             </div>
           </li>
         </ul>
@@ -59,10 +59,10 @@ export default {
       bookRequest.setTitle(this.inputField)
       this.client.add(bookRequest, {}, (err, response) => {
         this.title= response.toObject().title
-        console.log(this.title, "has been added.")
+        console.log(this.title, 'has been added.')
 
         // refresh the page
-        this.inputField = ""
+        this.inputField = ''
         this.List()
       })
     },
@@ -74,10 +74,10 @@ export default {
       bookRequest.setDone(true)
       this.client.update(bookRequest, {}, (err, response) => {
         this.title= response.toObject().title
-        console.log(this.title, "has been updated.")
+        console.log(this.title, 'has been updated.')
 
         // refresh the page
-        this.inputField = ""
+        this.inputField = ''
         this.List()
       })
     },
@@ -86,10 +86,10 @@ export default {
       bookRequest.setTitle(book.title)
       this.client.remove(bookRequest, {}, (err, response) => {
         this.title = response.toObject().title
-        console.log(this.title, "has been deleted.")
+        console.log(this.title, 'has been deleted.')
 
         // refresh the page
-        this.inputField = ""
+        this.inputField = ''
         this.List()
       })
     }
