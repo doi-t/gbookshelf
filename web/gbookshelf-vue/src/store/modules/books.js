@@ -30,9 +30,14 @@ const actions = {
       console.log(status.metadata)
     })
   },
-  addBook ({ commit }, title) { // FIXME: 'addBook' must take book instead of just a title
+  addBook ({ commit }, book) {
     let newBook = new Book()
-    newBook.setTitle(title)
+    newBook.setTitle(book.title)
+    newBook.setPage(book.page)
+    newBook.setCurrent(0)
+    newBook.setDone(false)
+    // TODO: newBook.setWhy(false)
+    // TODO: newBook.setReason(false)
     console.log('Adding new book...', newBook)
 
     const call = this.client.add(newBook, {}, (err, response) => {
@@ -76,9 +81,9 @@ const actions = {
   updateBook ({ commit }, book) {
     let updateBook = new Book()
     updateBook.setTitle(book.title)
-    updateBook.setPage(9999)
+    updateBook.setPage(book.page)
     updateBook.setCurrent(book.current)
-    updateBook.setDone(true)
+    updateBook.setDone(book.done)
 
     const call = this.client.update(updateBook, {}, (err, response) => {
       if (err) {

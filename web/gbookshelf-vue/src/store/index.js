@@ -7,7 +7,7 @@ Vue.use(Vuex)
 
 // Create store
 export default new Vuex.Store({
-	modules: {
-		books
-	}
+  modules: {
+    books
+  }
 })

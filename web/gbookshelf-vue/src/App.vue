@@ -1,15 +1,25 @@
 <template>
   <div id='app'>
+    <Header />
     <router-view/>
   </div>
 </template>
 
 <script>
-
+import Header from './components/layout/Header.vue'
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+      Header
+  }
 }
 </script>
 
 <style>
+body {
+  background: #FAEFD4
+}
+#app {
+  background: #FAEFD4
+}
 </style>

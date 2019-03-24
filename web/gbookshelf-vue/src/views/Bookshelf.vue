@@ -1,6 +1,5 @@
 <template>
   <div id='bookshelf'>
-		<div id='books-emoji'>📚 No More Tsundoku.</div> 
     <AddBook />
     <Books />
   </div>
@@ -27,8 +26,5 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 30px;
-}
-#books-emoji {
-  font-size: 60pt
 }
 </style>
