@@ -1,7 +1,7 @@
 <template>
   <div id="bookshelf">
     <section>
-      <span class="title-text">No more 積ん読</span>
+      <span class="title-text">No more Tsundoku</span>
         <div>
         <input v-model="inputField" v-on:keyup.enter="Add" placeholder="Your new book title">
         <button @click="Add">Add a new book to your bookshelf</button>
