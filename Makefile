@@ -70,6 +70,16 @@ run-gcp:
 drmi:
 	docker rmi -f $$(docker images --filter "dangling=true" -q --no-trunc)
 
+open-port:
+	gcloud compute firewall-rules create gbookshelf-firewall --allow tcp:30080
+
+check-port:
+	gcloud compute firewall-rules describe gbookshelf-firewall
+
+close-port:
+	gcloud compute firewall-rules delete gbookshelf-firewall
+
+
 tf-apply:
 	cd deployments/tf/; terraform apply
 
@@ -80,6 +90,7 @@ kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
 
 kube-describles: kube-init
+	kubectl get nodes --output wide --namespace $(ENV)-gbookshelf
 	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
 
 # NOTE: Use envsubst until kustomize allows me to patch literal ConfigMap (https://github.com/kubernetes-sigs/kustomize/issues/680).
@@ -87,17 +98,20 @@ kube-describles: kube-init
 kube-build:
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst
 
 kube-apply: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl apply -f -
 
 kube-delete: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
+	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl delete -f -
