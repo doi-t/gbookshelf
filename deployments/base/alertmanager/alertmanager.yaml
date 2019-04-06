@@ -2,15 +2,21 @@ global:
   resolve_timeout: 10s
 
 receivers:
-- name: 'slack'
+- name: slack
   slack_configs:
   - api_url: '${ALERTMANAGER_SLACK_WEB_HOOK}'
     channel: '${ALERTMANAGER_SLACK_CHANNEL}'
-    text: 'test alert from local: {{ .GroupLabels.app }}, {{ .GroupLabels.alertname }}'
+    title: '{{ .GroupLabels.alertname }}: You made a progress!'
+    text: '{{ .CommonAnnotations.description }}'
     send_resolved: true
 
 route:
-  receiver: 'slack'
+  receiver: slack
   group_wait: 10s
-  group_interval: 300s
+  group_interval: 30s
   repeat_interval: 86400s
+  routes:
+    - match:
+        service: book-notification
+      group_by: [book_title]
+      receiver: slack
