@@ -12,7 +12,7 @@ const getters = {
 const actions = {
   fetchBooks ({ commit }) {
     // It should be a 'List' function in somewhere else
-    this.client = new BookShelfClient('http://dev-gbookshelf-gateway:8080', null, null) // TODO: make it dynamic for NodePort
+    this.client = new BookShelfClient('http://xx.xx.xx.xx:30080', null, null) // TODO: make it dynamic for NodePort (http://xx.xx.xx.xx:30080)
     let voidRequest = new Void()
     const call = this.client.list(voidRequest, {}, (err, response) => {
       if (err) {
