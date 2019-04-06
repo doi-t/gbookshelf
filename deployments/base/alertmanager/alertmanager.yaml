@@ -1,11 +1,16 @@
 global:
-  slack_api_url: 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX'
-
-route:
-  receiver: 'slack'
+  resolve_timeout: 10s
 
 receivers:
 - name: 'slack'
   slack_configs:
-  - channel: '#test'
+  - api_url: '${ALERTMANAGER_SLACK_WEB_HOOK}'
+    channel: '${ALERTMANAGER_SLACK_CHANNEL}'
     text: 'test alert from local: {{ .GroupLabels.app }}, {{ .GroupLabels.alertname }}'
+    send_resolved: true
+
+route:
+  receiver: 'slack'
+  group_wait: 10s
+  group_interval: 300s
+  repeat_interval: 86400s

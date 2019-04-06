@@ -2,6 +2,8 @@ ENV:=dev
 COMMAND:=
 PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
+ALERTMANAGER_SLACK_CHANNEL:=
+ALERTMANAGER_SLACK_WEB_HOOK:=
 GBOOKSHELF_BOOKSHELF:=mybookshelf
 GBOOKSHELF_SERVER_PORT:=2109
 GBOOKSHELF_METRICS_PORT:=2112
@@ -26,6 +28,17 @@ install: ensure generate
 
 test: install
 	./scripts/integration_test.sh $(PROJECT_ID) $(FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH) $(BOOKSHELF)
+
+check-config:
+	export PROMETHUES_SERVICE=dummy-prometheus; \
+	export ALERTMANAGER_SERVICE=dummy-alertmanager; \
+	cat deployments/base/prometheus/prometheus.yaml | envsubst > /tmp/prometheus.yaml; \
+	promtool check config /tmp/prometheus.yaml; \
+	cat deployments/base/prometheus/rules.yaml | envsubst > /tmp/rules.yaml; \
+	promtool check rules /tmp/rules.yaml
+	export ALERTMANAGER_SLACK_CHANNEL='#dummy'; \
+	export ALERTMANAGER_SLACK_WEB_HOOK='https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX'; \
+	cat ./deployments/base/alertmanager/alertmanager.yaml | envsubst | amtool check-config
 
 add:
 	./scripts/cobra_add.sh $(COMMAND)
@@ -79,7 +92,6 @@ check-port:
 close-port:
 	gcloud compute firewall-rules delete gbookshelf-firewall
 
-
 tf-apply:
 	cd deployments/tf/; terraform apply
 
@@ -91,21 +103,25 @@ kube-init:
 
 kube-describles: kube-init
 	kubectl get nodes --output wide --namespace $(ENV)-gbookshelf
-	kubectl get pods,deployments,daemonsets,services,endpoints,configmaps,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
+	kubectl get pods,deployments,daemonsets,services,endpoints,ingresses,configmaps,secrets,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
 
 # NOTE: Use envsubst until kustomize allows me to patch literal ConfigMap (https://github.com/kubernetes-sigs/kustomize/issues/680).
 
-kube-build:
+kube-build: check-config
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
+	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
+	export ALERTMANAGER_SLACK_WEB_HOOK=$(ALERTMANAGER_SLACK_WEB_HOOK); \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst
 
-kube-apply: kube-init
+kube-apply: kube-init check-config
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
+	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
+	export ALERTMANAGER_SLACK_WEB_HOOK=$(ALERTMANAGER_SLACK_WEB_HOOK); \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl apply -f -
 
@@ -113,5 +129,7 @@ kube-delete: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
+	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
+	export ALERTMANAGER_SLACK_WEB_HOOK=$(ALERTMANAGER_SLACK_WEB_HOOK); \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl delete -f -

@@ -71,8 +71,11 @@ run-gcp
 ## Deploy
 
 ```shell
-make tf-apply
-make kube-apply
+make tf-apply \
+&& make \
+ALERTMANAGER_SLACK_CHANNEL=<your channel name including '#'> \
+ALERTMANAGER_SLACK_WEB_HOOK=<your slack incoming webhook url> \
+kube-apply
 ```
 
 ### Access Services
@@ -99,3 +102,4 @@ make tf-destroy
 - https://godoc.org/github.com/golang/protobuf/proto
 - https://godoc.org/cloud.google.com/go/firestore
 - https://github.com/grpc/grpc-web
+- https://www.envoyproxy.io/docs/envoy/latest/intro/version_history
