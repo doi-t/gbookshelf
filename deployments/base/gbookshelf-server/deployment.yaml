@@ -69,7 +69,6 @@ spec:
           - "/usr/local/bin/envoy"
         args:
           - "--config-path /etc/envoy/envoy.yaml"
-          - "--v2-config-only"
         ports:
         - name: gbookshelf
           containerPort: 8080

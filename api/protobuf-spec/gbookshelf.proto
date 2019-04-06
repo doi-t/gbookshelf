@@ -7,6 +7,11 @@ message Book {
     int32 page = 2;
     bool done = 3;
     int32 current = 4;
+    int32 id = 5;
+    int32 book_number = 6;
+    string why = 7;
+    string what = 8;
+    string review = 9;
 }
 
 message Books {

@@ -1,6 +1,16 @@
 groups:
-- name: InstanceDown
+- name: gbookshelf-notification
   rules:
-  - alert: InstanceDown
-    expr: up == 0
+  - record: job:gbookshelf_book_current_page:rate3m
+    expr: rate(gbookshelf_book_current_page[3m])
+  - alert: BookCurrentPageUpdate
+    expr: job:gbookshelf_book_current_page:rate3m != 0
     for: 1m
+    labels:
+      service: book-notification
+    annotations:
+      description: >
+        Updated Books:
+        {{ range query "job:gbookshelf_book_current_page:rate3m != 0" }}
+          {{ .Labels.book_title }}: {{ with printf `gbookshelf_book_current_page{book_title="%s"}` .Labels.book_title | query }}{{ . | first | value | humanize }} page{{ end }}
+        {{ end }}
