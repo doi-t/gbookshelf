@@ -1,19 +1,18 @@
 groups:
 - name: gbookshelf-notification
   rules:
-  - record: job:gbookshelf_book_current_page:rate3m
-    expr: rate(gbookshelf_book_current_page[3m])
+  - record: job:gbookshelf_book_current_page:rate5m
+    expr: rate(gbookshelf_book_current_page[5m])
   - alert: BookCurrentPageUpdate
-    expr: job:gbookshelf_book_current_page:rate3m != 0
+    expr: job:gbookshelf_book_current_page:rate5m != 0
     for: 1m
     labels:
       service: book-notification
     annotations: # TODO: generate dashboard link for each updated book in annotation?
       description: >
         Updated Books:
-        {{ range query "job:gbookshelf_book_current_page:rate3m != 0" }}
-          - {{ .Labels.book_title -}}:
-          {{- with printf `gbookshelf_book_current_page{book_title="%s"}` .Labels.book_title | query -}}
-            {{- . | first | value | humanize }} page
+        {{ range query "job:gbookshelf_book_current_page:rate5m != 0" }}
+          - {{ .Labels.book_title }}: {{ with printf `gbookshelf_book_current_page{book_title="%s"}` .Labels.book_title | query -}}
+            {{ . | first | value | humanize }} page
           {{- end }}
         {{ end }}
