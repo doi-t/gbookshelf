@@ -2,7 +2,7 @@
 
 ```sh
 $ cd web/
-$ yarn global add @vue/cli firebase-tools
+$ yarn global add @vue/cli @vue/cli-service-global firebase-tools
 $ firebase login
 $ vue init webpack gbookshelf-vue
 $ cd gbookshelf-vue/
@@ -63,6 +63,7 @@ $ yarn global upgrade
 # Test on local
 
 ```
+$ echo 'GBOOKSHELF_SERVER_URL=http://<your domain>:8080'
 $ make run-vue
-$ open http://localhost:8081
+$ open http://localhost:8080 # port number could be different depending on other opening ports.
 ```
