@@ -5,7 +5,7 @@ Manage your bookshelf to tackle a problem of many piled books which you would ne
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/doi-t/gbookshelf)
 [![Release](https://img.shields.io/github/release/doi-t/gbookshelf.svg?style=flat-square)](https://github.com/doi-t/gbookshelf/releases/latest)
 
-# Upsage
+# Usage
 **Super WIP: Currently it is pretty much useless.**
 
 ## Install Commands
