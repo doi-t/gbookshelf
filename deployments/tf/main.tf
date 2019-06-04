@@ -19,16 +19,17 @@ locals {
   env             = "dev"
   resource_prefix = "${local.project_name}-${local.env}"
   region          = "asia-northeast1"
+  zone            = "asia-northeast1-a"
   machine_type    = "n1-standard-1"
 }
 
 data "google_container_engine_versions" "asia_northeast1a" {
-  zone = "asia-northeast1-a"
+  location = "${local.zone}"
 }
 
 resource "google_container_cluster" "gbookshelf" {
-  name   = "${local.resource_prefix}"
-  region = "${local.region}"
+  name     = "${local.resource_prefix}"
+  location = "${local.region}"
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
@@ -37,16 +38,16 @@ resource "google_container_cluster" "gbookshelf" {
 
   initial_node_count = 1
 
-  # min_master_version = "${data.google_container_engine_versions.asia_northeast1a.latest_node_version}"
-  # node_version       = "${data.google_container_engine_versions.asia_northeast1a.latest_node_version}"
+  # Ref. https://cloud.google.com/kubernetes-engine/docs/release-notes
+  min_master_version = "${data.google_container_engine_versions.asia_northeast1a.latest_node_version}"
+  node_version       = "${data.google_container_engine_versions.asia_northeast1a.latest_node_version}"
 
-  min_master_version = "1.12.5-gke.5"
-  node_version       = "1.12.5-gke.5"
   # Setting an empty username and password explicitly disables basic auth
   master_auth {
     username = ""
     password = ""
   }
+
   node_config {
     oauth_scopes = [
       "https://www.googleapis.com/auth/compute",
@@ -62,6 +63,7 @@ resource "google_container_cluster" "gbookshelf" {
 
     tags = ["${local.project_name}", "${local.env}"]
   }
+
   addons_config {
     kubernetes_dashboard {
       disabled = true
@@ -71,7 +73,7 @@ resource "google_container_cluster" "gbookshelf" {
 
 resource "google_container_node_pool" "gbookshelf_preemptible_nodes" {
   name       = "${local.resource_prefix}-pool"
-  region     = "${local.region}"
+  location   = "${local.region}"
   cluster    = "${google_container_cluster.gbookshelf.name}"
   node_count = 1
 
