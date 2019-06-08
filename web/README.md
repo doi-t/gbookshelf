@@ -10,6 +10,7 @@ $ yarn add grpc google-protobuf grpc-web
 $ yarn add webpack-cli mini-css-extract-plugin
 $ yarn upgrade --latest
 $ yarn add babel-loader@7  # FIXME: Can't run 'yarn run dev' with babel-loader@8
+$ yarn upgrade weback-dev-server@3.6.0 # FIXME: 3.7.0/3.7.1 causes "TypeError: Cannot assign to read only property 'exports' of object '#<Object>'"
 $ firebase init hosting # ? What do you want to use as your public directory? dist
 $ cat firebase.json
 {
