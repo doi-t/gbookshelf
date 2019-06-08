@@ -1,0 +1,43 @@
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  namespace: cert-manager
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: 'doi.t.npdp@gmail.com'
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    dns01:
+      providers:
+      # Ref. https://docs.cert-manager.io/en/release-0.4/reference/issuers/acme/dns01.html#amazon-route53
+      - name: my-route53
+        route53:
+          region: ap-northeast-1
+          accessKeyID: AKIAQTVK736DU6V5CVJJ
+          secretAccessKeySecretRef:
+            name: route53-credentials-secret
+            key: secret-access-key
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: 'doi.t.npdp@gmail.com'
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    dns01:
+      providers:
+      - name: my-route53
+        route53:
+          region: ap-northeast-1
+          accessKeyID: AKIAQTVK736DU6V5CVJJ
+          secretAccessKeySecretRef:
+            name: route53-credentials-secret
+            key: secret-access-key
