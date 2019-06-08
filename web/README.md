@@ -2,7 +2,7 @@
 
 ```sh
 $ cd web/
-$ yarn global add @vue/cli firebase-tools
+$ yarn global add @vue/cli @vue/cli-service-global firebase-tools
 $ firebase login
 $ vue init webpack gbookshelf-vue
 $ cd gbookshelf-vue/
@@ -10,6 +10,7 @@ $ yarn add grpc google-protobuf grpc-web
 $ yarn add webpack-cli mini-css-extract-plugin
 $ yarn upgrade --latest
 $ yarn add babel-loader@7  # FIXME: Can't run 'yarn run dev' with babel-loader@8
+$ yarn upgrade weback-dev-server@3.6.0 # FIXME: 3.7.0/3.7.1 causes "TypeError: Cannot assign to read only property 'exports' of object '#<Object>'"
 $ firebase init hosting # ? What do you want to use as your public directory? dist
 $ cat firebase.json
 {
@@ -63,6 +64,7 @@ $ yarn global upgrade
 # Test on local
 
 ```
+$ echo 'GBOOKSHELF_SERVER_URL=http://<your domain>:8080'
 $ make run-vue
-$ open http://localhost:8081
+$ open http://localhost:8080 # port number could be different depending on other opening ports.
 ```

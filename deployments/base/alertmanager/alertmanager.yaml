@@ -1,22 +1,29 @@
 global:
   resolve_timeout: 10s
+  slack_api_url: '${ALERTMANAGER_SLACK_WEB_HOOK}'
 
 receivers:
-- name: slack
+- name: fallback-pager
   slack_configs:
-  - api_url: '${ALERTMANAGER_SLACK_WEB_HOOK}'
-    channel: '${ALERTMANAGER_SLACK_CHANNEL}'
-    title: '{{ .GroupLabels.alertname }}: You made a progress!'
+  - channel: '${ALERTMANAGER_SLACK_CHANNEL}'
     text: '{{ .CommonAnnotations.description }}'
     send_resolved: true
 
+- name: gbookshelf-notification
+  slack_configs:
+  - channel: '${ALERTMANAGER_SLACK_CHANNEL}'
+    # TODO: consider dashboard link (Maybe, generating it in rules.yaml is better)
+    text: >
+      {{ .CommonAnnotations.description }}
+
 route:
-  receiver: slack
-  group_wait: 10s
-  group_interval: 30s
-  repeat_interval: 86400s
+  receiver: fallback-pager
+  # group_wait: 30s # by default
+  # group_interval: 5m # by default
+  # repeat_interval: 4h # by default
   routes:
     - match:
         service: book-notification
-      group_by: [book_title]
-      receiver: slack
+      group_by: [service, alertname]
+      receiver: gbookshelf-notification
+      group_wait: 1m

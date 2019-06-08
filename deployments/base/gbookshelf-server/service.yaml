@@ -1,3 +1,4 @@
+---
 # NOTE: internal Service using headless service (load balancing by envoy instead of kube-proxy)
 apiVersion: v1
 kind: Service
@@ -33,3 +34,20 @@ spec:
   selector:
     name: gbookshelf-server
   type: NodePort
+---
+# external Service with LoadBalancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: gbookshelf-lb
+  labels:
+    name: gbookshelf-server
+spec:
+  ports:
+  - name: grpc
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: gbookshelf-server
+  type: LoadBalancer

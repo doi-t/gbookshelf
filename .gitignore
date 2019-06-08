@@ -26,3 +26,6 @@
 
 # .tfvars files
 *.tfvars
+
+# dotenv for webpack config
+.env
