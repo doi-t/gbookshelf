@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- cert-manager.yaml
+- letsencryptClusterIssuer.yaml
+- certificate.yaml
+- .credentials/route53-credentials-secret.yaml
+
+# NOTE: Doesn't work with ClusterIssuer (spec.acme.dns01.route53.secretAccessKeySecretRef doesn't change)
+# secretGenerator:
+# - name: route53-credentials-secret
+#   namespace: cert-manager
+#   files:
+#   - route53-credentials-secret-access-key=.credentials/route53-access-key
+#   type: Opaque
+#
+# Generated secret config which I currently put into .credentials by hands
+# ---
+# apiVersion: v1
+# data:
+#   route53-credentials-secret-access-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# kind: Secret
+# metadata:
+#   name: route53-credentials-secret # This name has, for example, '-bh9tk4thbb' as a suffix if I can use secretGenerator
+#   namespace: cert-manager
+# type: Opaque

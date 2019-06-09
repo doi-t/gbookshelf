@@ -4,9 +4,12 @@ PROJECT_ID:=
 FIRESTORE_ADMINSDK_CRENTIAL_FILE_PATH:=
 ALERTMANAGER_SLACK_CHANNEL:=
 ALERTMANAGER_SLACK_WEB_HOOK:=
+GBOOKSHELF_DOMAIN:=
 GBOOKSHELF_BOOKSHELF:=mybookshelf
 GBOOKSHELF_SERVER_PORT:=2109
 GBOOKSHELF_METRICS_PORT:=2112
+CERT_MANAGER_LETS_ENCRYPT_EMAIL:=
+CERT_MANAGER_ROUTE53_ACCESS_KEY_ID:=
 BUILD_DRYRUN:=false
 
 .PHONY: generate ensure install test add build run
@@ -102,7 +105,7 @@ tf-destroy:
 kube-init:
 	gcloud container clusters get-credentials gbookshelf-dev --region asia-northeast1
 
-kube-describles: kube-init
+kube-gets: kube-init
 	kubectl get nodes --output wide --namespace $(ENV)-gbookshelf
 	kubectl get pods,deployments,daemonsets,services,endpoints,ingresses,configmaps,secrets,persistentvolumeclaim,storageclass,namespaces,serviceaccount --show-labels --namespace $(ENV)-gbookshelf
 
@@ -110,6 +113,7 @@ kube-describles: kube-init
 
 kube-build: check-config
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
@@ -119,6 +123,7 @@ kube-build: check-config
 
 kube-apply: kube-init check-config
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
@@ -128,9 +133,38 @@ kube-apply: kube-init check-config
 
 kube-delete: kube-init
 	export GBOOKSHELF_SERVICE=$(ENV)-gbookshelf-server; \
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
 	export PROMETHUES_SERVICE=$(ENV)-prometheus; \
 	export ALERTMANAGER_SERVICE=$(ENV)-alertmanager; \
 	export ALERTMANAGER_SLACK_CHANNEL=$(ALERTMANAGER_SLACK_CHANNEL); \
 	export ALERTMANAGER_SLACK_WEB_HOOK=$(ALERTMANAGER_SLACK_WEB_HOOK); \
 	kustomize build deployments/overlays/$(ENV) \
 	| envsubst | kubectl delete -f -
+
+cert-manager-build:
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
+	export CERT_MANAGER_LETS_ENCRYPT_EMAIL=$(CERT_MANAGER_LETS_ENCRYPT_EMAIL); \
+	export CERT_MANAGER_ROUTE53_ACCESS_KEY_ID=$(CERT_MANAGER_ROUTE53_ACCESS_KEY_ID); \
+	kustomize build deployments/cert-manager \
+	| envsubst 
+
+cert-manager-apply:
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
+	export CERT_MANAGER_LETS_ENCRYPT_EMAIL=$(CERT_MANAGER_LETS_ENCRYPT_EMAIL); \
+	export CERT_MANAGER_ROUTE53_ACCESS_KEY_ID=$(CERT_MANAGER_ROUTE53_ACCESS_KEY_ID); \
+	kustomize build deployments/cert-manager \
+	| envsubst | kubectl apply -f -
+
+cert-manager-delete:
+	export GBOOKSHELF_DOMAIN=$(GBOOKSHELF_DOMAIN); \
+	export CERT_MANAGER_LETS_ENCRYPT_EMAIL=$(CERT_MANAGER_LETS_ENCRYPT_EMAIL); \
+	export CERT_MANAGER_ROUTE53_ACCESS_KEY_ID=$(CERT_MANAGER_ROUTE53_ACCESS_KEY_ID); \
+	kustomize build deployments/cert-manager \
+	| envsubst | kubectl delete -f -
+
+cert-manager-gets: kube-init
+	kubectl get pods,deployments,daemonsets,services,endpoints,ingresses,configmaps,secrets,persistentvolumeclaim,storageclass,namespaces,serviceaccount,clusterissuer,certificate --show-labels --namespace cert-manager
+
+cert-manager-check-certs: 
+	kubectl get secrets stg-gbookshelf-tls --namespace cert-manager -o json | jq -r '.data."tls.crt"' | base64 -D | openssl x509 -text
+	kubectl get secrets prd-gbookshelf-tls --namespace cert-manager -o json | jq -r '.data."tls.crt"' | base64 -D | openssl x509 -text

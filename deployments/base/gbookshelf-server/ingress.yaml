@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gbookshelf-ingress
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+    # kubernetes.io/ingress.global-static-ip-name: <reserved static ip> # FIXME
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: '*.${GBOOKSHELF_DOMAIN}'
+  tls:
+  - hosts:
+    - ${GBOOKSHELF_DOMAIN}
+    - '*.${GBOOKSHELF_DOMAIN}'
+    secretName: prd-gbookshelf-tls
+  backend:
+    serviceName: gbookshelf-lb
+    servicePort: 8080
