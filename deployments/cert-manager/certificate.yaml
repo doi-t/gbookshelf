@@ -1,0 +1,42 @@
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: stg-gbookshelf-certificate
+  namespace: cert-manager
+spec:
+  secretName: stg-gbookshelf-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: '*.${GBOOKSHELF_DOMAIN}'
+  dnsNames:
+  - ${GBOOKSHELF_DOMAIN}
+  acme:
+    config:
+    - dns01:
+        provider: my-route53
+      domains:
+      - '*.${GBOOKSHELF_DOMAIN}'
+      - ${GBOOKSHELF_DOMAIN}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: prd-gbookshelf-certificate
+  namespace: cert-manager
+spec:
+  secretName: prd-gbookshelf-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: '*.${GBOOKSHELF_DOMAIN}'
+  dnsNames:
+  - ${GBOOKSHELF_DOMAIN}
+  acme:
+    config:
+    - dns01:
+        provider: my-route53
+      domains:
+      - '*.${GBOOKSHELF_DOMAIN}'
+      - ${GBOOKSHELF_DOMAIN}

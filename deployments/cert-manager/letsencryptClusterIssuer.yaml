@@ -7,7 +7,7 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: 'doi.t.npdp@gmail.com'
+    email: '${CERT_MANAGER_LETS_ENCRYPT_EMAIL}'
     privateKeySecretRef:
       name: letsencrypt-staging
     dns01:
@@ -16,10 +16,10 @@ spec:
       - name: my-route53
         route53:
           region: ap-northeast-1
-          accessKeyID: AKIAQTVK736DU6V5CVJJ
+          accessKeyID: ${CERT_MANAGER_ROUTE53_ACCESS_KEY_ID}
           secretAccessKeySecretRef:
             name: route53-credentials-secret
-            key: secret-access-key
+            key: route53-credentials-secret-access-key
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
@@ -29,7 +29,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: 'doi.t.npdp@gmail.com'
+    email: '${CERT_MANAGER_LETS_ENCRYPT_EMAIL}'
     privateKeySecretRef:
       name: letsencrypt-prod
     dns01:
@@ -37,7 +37,7 @@ spec:
       - name: my-route53
         route53:
           region: ap-northeast-1
-          accessKeyID: AKIAQTVK736DU6V5CVJJ
+          accessKeyID: ${CERT_MANAGER_ROUTE53_ACCESS_KEY_ID}
           secretAccessKeySecretRef:
             name: route53-credentials-secret
-            key: secret-access-key
+            key: route53-credentials-secret-access-key

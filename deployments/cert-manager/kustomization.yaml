@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - cert-manager.yaml
 - letsencryptClusterIssuer.yaml
+- certificate.yaml
 - .credentials/route53-credentials-secret.yaml
 
 # NOTE: Doesn't work with ClusterIssuer (spec.acme.dns01.route53.secretAccessKeySecretRef doesn't change)

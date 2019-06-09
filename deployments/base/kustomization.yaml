@@ -7,6 +7,7 @@ resources:
 - namespace.yaml
 - gbookshelf-server/deployment.yaml
 - gbookshelf-server/service.yaml
+- gbookshelf-server/ingress.yaml
 - prometheus/deployment.yaml
 - prometheus/service.yaml
 - prometheus/clusterRole.yaml
