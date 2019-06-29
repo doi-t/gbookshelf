@@ -22,10 +22,7 @@ generate:
 		--js_out=import_style=commonjs,binary:./web/gbookshelf-vue/node_modules/ \
 		--grpc-web_out=import_style=commonjs,mode=grpcwebtext:./web/gbookshelf-vue/node_modules/
 	 
-ensure:
-	dep ensure
-
-install: ensure generate
+install: generate
 	go install ./cmd/gbookshelf-server
 	go install ./cmd/gbsctl
 
