@@ -18,7 +18,7 @@
     "cache-loader": "^4.0.0",
     "dotenv-webpack": "^1.7.0",
     "google-protobuf": "^3.7.1",
-    "grpc": "^1.19.0",
+    "grpc": "^1.24.9",
     "grpc-web": "^1.0.4",
     "mini-css-extract-plugin": "^0.7.0",
     "vue": "^2.6.10",
